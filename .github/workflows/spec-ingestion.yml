@@ -1,5 +1,8 @@
 # Specification Ingestion Workflow
-# Triggers Claude Code CLI to implement features based on approved specifications
+# Triggers AI CLI to implement features based on approved specifications
+#
+# Supports multiple AI CLIs: Claude Code, Aider, GitHub Copilot, Cody, and custom
+# Platform-agnostic: runs on Ubuntu, Windows, and macOS runners
 #
 # Triggers:
 #   1. Manual dispatch with spec file path
@@ -7,8 +10,8 @@
 #   3. Scheduled processing of specs from configuration file
 #
 # Requirements:
-#   - ANTHROPIC_API_KEY secret configured
-#   - Claude Code CLI installed
+#   - AI API key secret configured (varies by provider)
+#   - AI CLI will be auto-installed based on selection
 
 name: Spec Ingestion
 
@@ -24,6 +27,27 @@ on:
         description: "Specification ID to process from config (e.g., FEAT-0001)"
         required: false
         type: string
+      ai_cli:
+        description: "AI CLI to use for implementation"
+        required: false
+        type: choice
+        options:
+          - auto
+          - claude
+          - aider
+          - copilot
+          - cody
+          - gpt
+        default: auto
+      runner_os:
+        description: "Runner OS"
+        required: false
+        type: choice
+        options:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        default: ubuntu-latest
       dry_run:
         description: "Run without making changes (validation only)"
         required: false
@@ -50,12 +74,14 @@ on:
 env:
   SPECS_CONFIG: "specs.config.yaml"
   NODE_VERSION: "20"
+  PYTHON_VERSION: "3.11"
+  AI_CLI: ${{ github.event.inputs.ai_cli || 'auto' }}
 
 jobs:
   # Validate specifications before processing
   validate:
     name: Validate Specifications
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.inputs.runner_os || 'ubuntu-latest' }}
     outputs:
       specs_to_process: ${{ steps.determine-specs.outputs.specs }}
       has_specs: ${{ steps.determine-specs.outputs.has_specs }}
@@ -71,11 +97,24 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install validation tools
+      - name: Install validation tools (Unix)
+        if: runner.os != 'Windows'
         run: |
-          npm install -g ajv-cli yaml-lint
+          npm install -g ajv-cli
+          pip install yamllint || true
 
-      - name: Determine specs to process
+      - name: Install validation tools (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          npm install -g ajv-cli
+          pip install yamllint
+
+      - name: Install yq
+        uses: mikefarah/yq@master
+
+      - name: Determine specs to process (Unix)
+        if: runner.os != 'Windows'
         id: determine-specs
         run: |
           SPECS_JSON="[]"
@@ -133,8 +172,57 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      - name: Validate spec schemas
-        if: steps.determine-specs.outputs.has_specs == 'true'
+      - name: Determine specs to process (Windows)
+        if: runner.os == 'Windows'
+        id: determine-specs-win
+        shell: pwsh
+        run: |
+          $specsJson = "[]"
+
+          # Priority 1: Manual spec file input
+          if ("${{ github.event.inputs.spec_file }}") {
+            if (Test-Path "${{ github.event.inputs.spec_file }}") {
+              $specsJson = @("${{ github.event.inputs.spec_file }}") | ConvertTo-Json -Compress
+            } else {
+              Write-Error "Specified file does not exist: ${{ github.event.inputs.spec_file }}"
+              exit 1
+            }
+          }
+          # Priority 2: Manual spec ID from config
+          elseif ("${{ github.event.inputs.spec_id }}") {
+            if (Test-Path "${{ env.SPECS_CONFIG }}") {
+              $specFile = yq e ".specifications[] | select(.id == `"${{ github.event.inputs.spec_id }}`") | .file" "${{ env.SPECS_CONFIG }}"
+              if ($specFile -and (Test-Path $specFile)) {
+                $specsJson = @($specFile) | ConvertTo-Json -Compress
+              }
+            }
+          }
+          # Priority 3: Changed files in push
+          elseif ("${{ github.event_name }}" -eq "push") {
+            $changed = git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- 'specs/**/*.yaml' 'specs/**/*.json' | Where-Object { $_ -notmatch '_template' }
+            if ($changed) {
+              $specsJson = $changed | ConvertTo-Json -Compress
+            }
+          }
+          # Priority 4: Scheduled
+          elseif ("${{ github.event_name }}" -eq "schedule") {
+            if (Test-Path "${{ env.SPECS_CONFIG }}") {
+              $specs = yq e -o=json '.specifications | map(select(.status == "approved" and .auto_implement == true)) | .[].file' "${{ env.SPECS_CONFIG }}"
+              if ($specs) {
+                $specsJson = ($specs -split "`n" | Where-Object { $_ }) | ConvertTo-Json -Compress
+              }
+            }
+          }
+
+          "specs=$specsJson" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          if ($specsJson -ne "[]") {
+            "has_specs=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          } else {
+            "has_specs=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
+
+      - name: Validate spec schemas (Unix)
+        if: runner.os != 'Windows' && steps.determine-specs.outputs.has_specs == 'true'
         run: |
           SPECS='${{ steps.determine-specs.outputs.specs }}'
           echo "$SPECS" | jq -r '.[]' | while read -r spec_file; do
@@ -147,7 +235,6 @@ jobs:
 
             # JSON Schema validation for feature specs
             if [[ "$spec_file" == specs/features/* ]]; then
-              # Convert YAML to JSON for validation
               yq e -o=json "$spec_file" > /tmp/spec.json
               ajv validate -s specs/schemas/feature-spec.schema.json -d /tmp/spec.json || {
                 echo "::error::Schema validation failed for $spec_file"
@@ -158,12 +245,12 @@ jobs:
             echo "::notice::Validated: $spec_file"
           done
 
-  # Process specifications with Claude Code
+  # Process specifications with AI CLI
   implement:
     name: Implement Specification
     needs: validate
     if: needs.validate.outputs.has_specs == 'true' && github.event.inputs.dry_run != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.inputs.runner_os || 'ubuntu-latest' }}
     permissions:
       contents: write
       pull-requests: write
@@ -171,7 +258,7 @@ jobs:
     strategy:
       matrix:
         spec: ${{ fromJson(needs.validate.outputs.specs_to_process) }}
-      max-parallel: 1  # Process one spec at a time
+      max-parallel: 1
       fail-fast: false
 
     steps:
@@ -185,12 +272,57 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install Claude Code CLI
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install yq
+        uses: mikefarah/yq@master
+
+      - name: Detect and Install AI CLI
+        id: setup-ai
+        shell: bash
         run: |
-          npm install -g @anthropic-ai/claude-code
+          AI_CLI="${{ env.AI_CLI }}"
+
+          # Auto-detect based on available secrets
+          if [ "$AI_CLI" = "auto" ]; then
+            if [ -n "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+              AI_CLI="claude"
+            elif [ -n "${{ secrets.OPENAI_API_KEY }}" ]; then
+              AI_CLI="aider"
+            else
+              AI_CLI="claude"  # Default
+            fi
+          fi
+
+          echo "ai_cli=$AI_CLI" >> $GITHUB_OUTPUT
+
+          # Install the selected AI CLI
+          case "$AI_CLI" in
+            claude)
+              npm install -g @anthropic-ai/claude-code
+              ;;
+            aider)
+              pip install aider-chat
+              ;;
+            copilot)
+              gh extension install github/gh-copilot || true
+              ;;
+            cody)
+              echo "Cody requires manual installation - see https://sourcegraph.com/docs/cody"
+              ;;
+            gpt)
+              pip install openai-cli || npm install -g gpt-cli
+              ;;
+          esac
+
+          echo "::notice::Using AI CLI: $AI_CLI"
 
       - name: Extract spec metadata
         id: spec-meta
+        shell: bash
         run: |
           SPEC_FILE="${{ matrix.spec }}"
 
@@ -217,23 +349,46 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b ${{ steps.spec-meta.outputs.branch_name }}
 
-      - name: Run Claude Code implementation
-        id: claude-implement
+      - name: Run AI implementation (Unix)
+        if: runner.os != 'Windows'
+        id: ai-implement
         env:
+          AI_CLI: ${{ steps.setup-ai.outputs.ai_cli }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SRC_ACCESS_TOKEN: ${{ secrets.SRC_ACCESS_TOKEN }}
         run: |
           SPEC_FILE="${{ matrix.spec }}"
 
-          # Run the spec ingestion script
           chmod +x scripts/ingest-spec.sh
           ./scripts/ingest-spec.sh "$SPEC_FILE" 2>&1 | tee implementation.log
 
-          # Check for implementation success
           if grep -q "Implementation completed successfully" implementation.log; then
             echo "status=success" >> $GITHUB_OUTPUT
           else
             echo "status=partial" >> $GITHUB_OUTPUT
           fi
+
+      - name: Run AI implementation (Windows)
+        if: runner.os == 'Windows'
+        id: ai-implement-win
+        shell: pwsh
+        env:
+          AI_CLI: ${{ steps.setup-ai.outputs.ai_cli }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SRC_ACCESS_TOKEN: ${{ secrets.SRC_ACCESS_TOKEN }}
+        run: |
+          $specFile = "${{ matrix.spec }}"
+          ./scripts/Invoke-SpecIngestion.ps1 -SpecFile $specFile -AiCli $env:AI_CLI | Tee-Object -FilePath implementation.log
+
+          if (Select-String -Path implementation.log -Pattern "Implementation completed successfully") {
+            "status=success" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          } else {
+            "status=partial" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
 
       - name: Commit changes
         run: |
@@ -243,13 +398,25 @@ jobs:
             exit 0
           fi
 
+          AI_CLI="${{ steps.setup-ai.outputs.ai_cli }}"
+          AI_NAME="AI Assistant"
+          AI_EMAIL="noreply@example.com"
+
+          case "$AI_CLI" in
+            claude) AI_NAME="Claude"; AI_EMAIL="noreply@anthropic.com" ;;
+            aider)  AI_NAME="Aider"; AI_EMAIL="noreply@aider.chat" ;;
+            copilot) AI_NAME="GitHub Copilot"; AI_EMAIL="noreply@github.com" ;;
+            cody)   AI_NAME="Sourcegraph Cody"; AI_EMAIL="noreply@sourcegraph.com" ;;
+            gpt)    AI_NAME="GPT"; AI_EMAIL="noreply@openai.com" ;;
+          esac
+
           git commit -m "feat(${{ steps.spec-meta.outputs.spec_id }}): ${{ steps.spec-meta.outputs.spec_title }}
 
           Implements specification: ${{ matrix.spec }}
 
-          Generated by Claude Code via spec-ingestion workflow
+          Generated by $AI_NAME via spec-ingestion workflow
 
-          Co-Authored-By: Claude <noreply@anthropic.com>"
+          Co-Authored-By: $AI_NAME <$AI_EMAIL>"
 
       - name: Push branch
         run: |
@@ -261,8 +428,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           SPEC_FILE="${{ matrix.spec }}"
+          AI_CLI="${{ steps.setup-ai.outputs.ai_cli }}"
 
-          # Extract spec content for PR body
           if [[ "$SPEC_FILE" == *.yaml ]] || [[ "$SPEC_FILE" == *.yml ]]; then
             SUMMARY=$(yq e '.description.summary' "$SPEC_FILE")
             ACCEPTANCE_CRITERIA=$(yq e '.acceptance_criteria | .[] | "- [ ] " + .id + ": Given " + .given + ", when " + .when + ", then " + .then' "$SPEC_FILE")
@@ -281,12 +448,13 @@ jobs:
           - **ID**: ${{ steps.spec-meta.outputs.spec_id }}
           - **Priority**: ${{ steps.spec-meta.outputs.spec_priority }}
           - **Spec File**: \`${{ matrix.spec }}\`
+          - **AI CLI**: $AI_CLI
 
           ## Acceptance Criteria
           $ACCEPTANCE_CRITERIA
 
           ## Implementation Notes
-          This PR was automatically generated by Claude Code based on the approved specification.
+          This PR was automatically generated by AI ($AI_CLI) based on the approved specification.
 
           ### Checklist
           - [ ] Code review completed
@@ -330,5 +498,7 @@ jobs:
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Validation | ${{ needs.validate.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Implementation | ${{ needs.implement.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**AI CLI**: ${{ env.AI_CLI }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Specs processed**: ${{ needs.validate.outputs.specs_to_process }}" >> $GITHUB_STEP_SUMMARY

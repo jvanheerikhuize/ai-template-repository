@@ -1,18 +1,30 @@
 #!/usr/bin/env bash
 #
-# Spec Ingestion Script
-# Processes specification files and triggers Claude Code CLI for implementation
+# Spec Ingestion Script (Bash/Unix)
+# Processes specification files and triggers AI CLI for implementation
 #
 # Usage:
 #   ./scripts/ingest-spec.sh <spec-file>
 #   ./scripts/ingest-spec.sh --config [config-file]
 #   ./scripts/ingest-spec.sh --validate <spec-file>
 #
+# Supported AI CLIs (auto-detected or set via AI_CLI):
+#   - claude     (Anthropic Claude Code)
+#   - aider      (Aider - AI pair programming)
+#   - copilot    (GitHub Copilot CLI)
+#   - cody       (Sourcegraph Cody)
+#   - cursor     (Cursor AI - via CLI)
+#   - continue   (Continue.dev)
+#   - gpt        (OpenAI GPT CLI)
+#   - custom     (Custom command via AI_CLI_COMMAND)
+#
 # Environment Variables:
-#   ANTHROPIC_API_KEY    - Required: API key for Claude Code
-#   CLAUDE_MODEL         - Optional: Model to use (default: claude-sonnet-4-20250514)
-#   DRY_RUN              - Optional: Set to "true" for validation only
-#   VERBOSE              - Optional: Set to "true" for detailed output
+#   AI_CLI             - AI CLI to use (auto-detected if not set)
+#   AI_CLI_COMMAND     - Custom CLI command (when AI_CLI=custom)
+#   AI_API_KEY         - API key for AI service (name varies by provider)
+#   AI_MODEL           - Model to use (provider-specific)
+#   DRY_RUN            - Set to "true" for validation only
+#   VERBOSE            - Set to "true" for detailed output
 
 set -euo pipefail
 
@@ -20,16 +32,23 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SPECS_CONFIG="${PROJECT_ROOT}/specs.config.yaml"
-CLAUDE_MODEL="${CLAUDE_MODEL:-claude-sonnet-4-20250514}"
 DRY_RUN="${DRY_RUN:-false}"
 VERBOSE="${VERBOSE:-false}"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Colors for output (with fallback for non-color terminals)
+if [[ -t 1 ]] && command -v tput &> /dev/null && [[ $(tput colors 2>/dev/null || echo 0) -ge 8 ]]; then
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;34m'
+    NC='\033[0m'
+else
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    NC=''
+fi
 
 # Logging functions
 log_info() {
@@ -54,20 +73,59 @@ log_verbose() {
     fi
 }
 
+# Detect available AI CLI
+detect_ai_cli() {
+    if [[ -n "${AI_CLI:-}" ]]; then
+        echo "$AI_CLI"
+        return 0
+    fi
+
+    # Detection order (most common first)
+    local cli_options=("claude" "aider" "gh copilot" "cody" "cursor" "continue" "gpt")
+
+    for cli in "${cli_options[@]}"; do
+        if command -v "${cli%% *}" &> /dev/null; then
+            echo "${cli%% *}"
+            return 0
+        fi
+    done
+
+    echo "none"
+    return 1
+}
+
+# Get API key environment variable name for CLI
+get_api_key_var() {
+    local cli="$1"
+    case "$cli" in
+        claude)   echo "ANTHROPIC_API_KEY" ;;
+        aider)    echo "OPENAI_API_KEY" ;;  # or ANTHROPIC_API_KEY
+        gpt)      echo "OPENAI_API_KEY" ;;
+        copilot)  echo "GITHUB_TOKEN" ;;
+        cody)     echo "SRC_ACCESS_TOKEN" ;;
+        *)        echo "AI_API_KEY" ;;
+    esac
+}
+
 # Check dependencies
 check_dependencies() {
     local missing_deps=()
 
-    if ! command -v claude &> /dev/null; then
-        missing_deps+=("claude (npm install -g @anthropic-ai/claude-code)")
-    fi
-
+    # Check for YAML/JSON processors
     if ! command -v yq &> /dev/null; then
         missing_deps+=("yq (https://github.com/mikefarah/yq)")
     fi
 
     if ! command -v jq &> /dev/null; then
-        missing_deps+=("jq")
+        missing_deps+=("jq (https://stedolan.github.io/jq/)")
+    fi
+
+    # Detect AI CLI
+    local detected_cli
+    detected_cli=$(detect_ai_cli)
+
+    if [[ "$detected_cli" == "none" && "${AI_CLI:-}" != "custom" ]]; then
+        missing_deps+=("AI CLI (claude, aider, copilot, cody, cursor, continue, or gpt)")
     fi
 
     if [[ ${#missing_deps[@]} -gt 0 ]]; then
@@ -75,13 +133,26 @@ check_dependencies() {
         for dep in "${missing_deps[@]}"; do
             echo "  - $dep"
         done
+        echo ""
+        echo "Install an AI CLI:"
+        echo "  - Claude Code:  npm install -g @anthropic-ai/claude-code"
+        echo "  - Aider:        pip install aider-chat"
+        echo "  - GitHub Copilot: gh extension install github/gh-copilot"
+        echo "  - Cody:         See https://sourcegraph.com/docs/cody"
         exit 1
     fi
 
-    if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
-        log_error "ANTHROPIC_API_KEY environment variable is not set"
-        exit 1
+    # Check API key
+    local api_key_var
+    api_key_var=$(get_api_key_var "$detected_cli")
+
+    if [[ -z "${!api_key_var:-}" && "$detected_cli" != "copilot" ]]; then
+        log_warn "$api_key_var environment variable is not set"
+        log_info "Some AI CLIs may use different authentication methods"
     fi
+
+    AI_CLI_DETECTED="$detected_cli"
+    log_verbose "Using AI CLI: $AI_CLI_DETECTED"
 }
 
 # Validate spec file
@@ -137,37 +208,22 @@ validate_spec() {
     return 0
 }
 
-# Extract spec content for Claude prompt
-extract_spec_content() {
-    local spec_file="$1"
-    local ext="${spec_file##*.}"
-
-    if [[ "$ext" == "yaml" || "$ext" == "yml" ]]; then
-        # Convert to formatted content for Claude
-        cat "$spec_file"
-    else
-        cat "$spec_file"
-    fi
-}
-
-# Build Claude prompt from spec
+# Build AI prompt from spec
 build_prompt() {
     local spec_file="$1"
     local spec_content
-    spec_content=$(extract_spec_content "$spec_file")
+    spec_content=$(cat "$spec_file")
 
     local ext="${spec_file##*.}"
-    local spec_id spec_title summary acceptance_criteria
+    local spec_id spec_title acceptance_criteria
 
     if [[ "$ext" == "yaml" || "$ext" == "yml" ]]; then
         spec_id=$(yq e '.metadata.id' "$spec_file")
         spec_title=$(yq e '.metadata.title' "$spec_file")
-        summary=$(yq e '.description.summary' "$spec_file")
         acceptance_criteria=$(yq e -o=json '.acceptance_criteria' "$spec_file")
     else
         spec_id=$(jq -r '.metadata.id' "$spec_file")
         spec_title=$(jq -r '.metadata.title' "$spec_file")
-        summary=$(jq -r '.description.summary' "$spec_file")
         acceptance_criteria=$(jq '.acceptance_criteria' "$spec_file")
     fi
 
@@ -205,13 +261,13 @@ Begin implementation now. Start by exploring the codebase to understand the exis
 EOF
 }
 
-# Run Claude Code CLI
-run_claude() {
+# Run AI CLI
+run_ai_cli() {
     local spec_file="$1"
     local prompt
     prompt=$(build_prompt "$spec_file")
 
-    log_info "Starting Claude Code implementation..."
+    log_info "Starting AI implementation with: $AI_CLI_DETECTED"
     log_verbose "Prompt length: ${#prompt} characters"
 
     if [[ "$DRY_RUN" == "true" ]]; then
@@ -229,20 +285,76 @@ run_claude() {
     prompt_file=$(mktemp)
     echo "$prompt" > "$prompt_file"
 
-    # Run Claude Code CLI
-    # Using --print for non-interactive mode in CI
-    # The prompt is passed via stdin
     cd "$PROJECT_ROOT"
+    local exit_code=0
 
-    if claude --print --dangerously-skip-permissions < "$prompt_file"; then
-        log_success "Implementation completed successfully"
-        rm -f "$prompt_file"
-        return 0
-    else
-        log_error "Claude Code execution failed"
-        rm -f "$prompt_file"
-        return 1
+    case "$AI_CLI_DETECTED" in
+        claude)
+            # Claude Code CLI
+            if claude --print --dangerously-skip-permissions < "$prompt_file"; then
+                log_success "Implementation completed successfully"
+            else
+                exit_code=1
+            fi
+            ;;
+        aider)
+            # Aider
+            if aider --message "$(cat "$prompt_file")" --yes --no-git; then
+                log_success "Implementation completed successfully"
+            else
+                exit_code=1
+            fi
+            ;;
+        copilot)
+            # GitHub Copilot CLI
+            if gh copilot suggest "$(cat "$prompt_file")"; then
+                log_success "Copilot suggestion generated"
+            else
+                exit_code=1
+            fi
+            ;;
+        cody)
+            # Sourcegraph Cody
+            if cody chat --message "$(cat "$prompt_file")"; then
+                log_success "Implementation completed successfully"
+            else
+                exit_code=1
+            fi
+            ;;
+        gpt)
+            # OpenAI GPT CLI
+            if gpt "$(cat "$prompt_file")"; then
+                log_success "Implementation completed successfully"
+            else
+                exit_code=1
+            fi
+            ;;
+        custom)
+            # Custom CLI command
+            if [[ -z "${AI_CLI_COMMAND:-}" ]]; then
+                log_error "AI_CLI_COMMAND must be set when using custom CLI"
+                exit_code=1
+            else
+                if eval "$AI_CLI_COMMAND" < "$prompt_file"; then
+                    log_success "Implementation completed successfully"
+                else
+                    exit_code=1
+                fi
+            fi
+            ;;
+        *)
+            log_error "Unsupported AI CLI: $AI_CLI_DETECTED"
+            exit_code=1
+            ;;
+    esac
+
+    rm -f "$prompt_file"
+
+    if [[ $exit_code -ne 0 ]]; then
+        log_error "AI CLI execution failed"
     fi
+
+    return $exit_code
 }
 
 # Process specs from config file
@@ -297,8 +409,8 @@ process_spec() {
         return 1
     fi
 
-    # Run Claude implementation
-    if ! run_claude "$spec_file"; then
+    # Run AI implementation
+    if ! run_ai_cli "$spec_file"; then
         return 1
     fi
 
@@ -308,7 +420,7 @@ process_spec() {
 # Display usage
 usage() {
     cat <<EOF
-Spec Ingestion Script - Process specifications with Claude Code CLI
+Spec Ingestion Script - Process specifications with AI CLI
 
 Usage:
     $(basename "$0") <spec-file>           Process a single spec file
@@ -321,15 +433,30 @@ Options:
     --validate         Validate spec file only, no implementation
     --help, -h         Show this help message
 
+Supported AI CLIs (auto-detected):
+    claude      Anthropic Claude Code
+    aider       Aider AI pair programming
+    copilot     GitHub Copilot CLI
+    cody        Sourcegraph Cody
+    gpt         OpenAI GPT CLI
+    custom      Custom command (set AI_CLI_COMMAND)
+
 Environment Variables:
-    ANTHROPIC_API_KEY  API key for Claude (required)
-    CLAUDE_MODEL       Model to use (default: claude-sonnet-4-20250514)
+    AI_CLI             Force specific AI CLI (optional, auto-detected)
+    AI_CLI_COMMAND     Custom CLI command (when AI_CLI=custom)
+    AI_API_KEY         Generic API key (or use provider-specific var)
+    ANTHROPIC_API_KEY  API key for Claude
+    OPENAI_API_KEY     API key for OpenAI/Aider
+    AI_MODEL           Model to use (provider-specific)
     DRY_RUN            Set to "true" for validation only
     VERBOSE            Set to "true" for detailed output
 
 Examples:
-    # Process a single feature spec
+    # Process a single feature spec (auto-detect AI CLI)
     ./scripts/ingest-spec.sh specs/features/FEAT-0001.yaml
+
+    # Process with specific AI CLI
+    AI_CLI=aider ./scripts/ingest-spec.sh specs/features/FEAT-0001.yaml
 
     # Process all approved specs from config
     ./scripts/ingest-spec.sh --config
@@ -339,6 +466,9 @@ Examples:
 
     # Dry run (show what would be done)
     DRY_RUN=true ./scripts/ingest-spec.sh specs/features/FEAT-0001.yaml
+
+    # Use custom AI CLI
+    AI_CLI=custom AI_CLI_COMMAND="my-ai-tool --input" ./scripts/ingest-spec.sh spec.yaml
 EOF
 }
 

@@ -1,6 +1,7 @@
-# Claude Code Project Instructions
+# AI Coding Assistant Instructions
 
-This document provides context and guidelines for Claude Code when working with this repository.
+> This document provides context and guidelines for AI coding assistants when working with this repository.
+> Works with: Claude Code, GitHub Copilot, Cursor, Aider, Cody, Continue, and other AI tools.
 
 ## Quick Start
 
@@ -11,7 +12,13 @@ This document provides context and guidelines for Claude Code when working with 
 
 ## Project Overview
 
-This is a **language-agnostic template repository** designed for **spec-based development** with AI assistant integration. Features are implemented based on formal specifications rather than ad-hoc requests.
+This is a **language-agnostic, platform-agnostic template repository** designed for **spec-based development** with AI assistant integration. Features are implemented based on formal specifications rather than ad-hoc requests.
+
+### Key Principles
+- **AI-Agnostic**: Works with any AI coding assistant
+- **Platform-Agnostic**: Supports Windows, macOS, and Linux
+- **Language-Agnostic**: Adaptable to any programming language
+- **Spec-Driven**: Formal specifications before implementation
 
 ## Repository Structure
 
@@ -32,18 +39,25 @@ This is a **language-agnostic template repository** designed for **spec-based de
 │   ├── api/                 # API specs (OpenAPI)
 │   └── schemas/             # JSON schemas for validation
 │
-├── scripts/                  # Automation scripts
-│   └── ingest-spec.sh       # Spec processing script
+├── scripts/                  # Automation scripts (cross-platform)
+│   ├── ingest-spec.sh       # Bash/Unix script
+│   └── Invoke-SpecIngestion.ps1  # PowerShell script
 │
 ├── .github/
 │   ├── workflows/           # CI/CD workflows
 │   │   ├── spec-ingestion.yml
-│   │   └── validate-specs.yml
+│   │   ├── validate-specs.yml
+│   │   └── notify-integrations.yml
 │   └── ISSUE_TEMPLATE/      # Issue templates
 │
-├── docs/                     # User-facing documentation
-├── specs.config.yaml         # Central spec registry
-└── .claude/                  # Claude Code configuration
+├── docs/
+│   ├── spec-based-development.md
+│   ├── integrations.md
+│   └── runbooks/            # Operational procedures
+│
+├── specs.config.yaml        # Central spec registry & config
+├── .claude/                 # Claude Code configuration
+└── .cursorrules             # Cursor IDE rules (optional)
 ```
 
 ## Context Hierarchy
@@ -64,7 +78,7 @@ When you need information, follow this hierarchy:
 
 1. **Specification First**: All features start with a formal spec in `specs/features/`
 2. **Review & Approval**: Specs go through review before implementation
-3. **Automated Implementation**: Approved specs trigger Claude Code implementation
+3. **AI-Assisted Implementation**: Approved specs trigger AI implementation
 4. **PR Creation**: Implementation creates a PR for human review
 
 ## When Implementing Specs
@@ -125,7 +139,7 @@ feat(FEAT-0001): Brief description
 - Implemented acceptance criteria AC-001, AC-002
 - Added tests for all criteria
 
-Co-Authored-By: Claude <noreply@anthropic.com>
+Co-Authored-By: [AI Assistant Name] <noreply@example.com>
 ```
 
 ## Working with specs.config.yaml
@@ -152,3 +166,12 @@ Check `.ai/config.yaml` for:
 - Testing requirements
 - Behavior settings
 - Domain-specific terminology
+- AI tool integration settings
+
+## Cross-Platform Considerations
+
+When generating code or commands:
+- Provide both Bash and PowerShell alternatives where applicable
+- Use cross-platform path separators or abstract them
+- Consider Windows, macOS, and Linux compatibility
+- Reference appropriate scripts based on platform context
