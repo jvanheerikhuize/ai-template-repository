@@ -1,0 +1,85 @@
+name: Feature Request
+description: Propose a new feature (will require a specification)
+title: "[FEATURE]: "
+labels: ["feature-request", "needs-spec"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request
+
+        Thank you for suggesting a feature! This issue will be used to discuss the idea before a formal specification is created.
+
+        **Note:** All features require a specification before implementation. After discussion, a spec will be created in `specs/features/`.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? Who is affected?
+      placeholder: |
+        Currently, users cannot...
+        This causes...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How should this problem be solved? What would the feature look like?
+      placeholder: |
+        The feature should...
+        Users would be able to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other solutions have you considered?
+      placeholder: |
+        Alternative 1: ...
+        Alternative 2: ...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Suggested Priority
+      description: How urgent is this feature?
+      options:
+        - Low - Nice to have
+        - Medium - Would improve workflow
+        - High - Blocking important work
+        - Critical - Security or compliance issue
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Success Criteria
+      description: How would we know this feature is complete? List testable criteria.
+      placeholder: |
+        - Users can...
+        - System shows...
+        - Performance is...
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues to avoid duplicates
+          required: true
+        - label: I have checked this isn't already covered by an existing spec
+          required: true
+        - label: I am willing to help write the specification for this feature
+          required: false

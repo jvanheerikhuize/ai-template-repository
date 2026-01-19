@@ -1,0 +1,108 @@
+# Specification Configuration
+# This file manages all specifications in the repository
+# Used by the spec-ingestion workflow and scripts
+#
+# Specs can be added here for batch processing or tracked centrally
+
+version: "1.0"
+
+# Global settings for spec processing
+settings:
+  # Default branch for implementation PRs
+  target_branch: "main"
+
+  # Require approval before auto-implementation
+  require_approval: true
+
+  # Labels to add to generated PRs
+  pr_labels:
+    - "automated"
+    - "spec-implementation"
+
+  # Reviewers to auto-assign (GitHub usernames)
+  auto_reviewers: []
+
+  # Teams to auto-assign for review
+  auto_review_teams: []
+
+  # Run tests before creating PR
+  run_tests: true
+
+  # Validation settings
+  validation:
+    require_schema_validation: true
+    require_acceptance_criteria: true
+    min_acceptance_criteria: 1
+
+# Specification registry
+# Add specs here to track them centrally and enable batch processing
+specifications:
+  # Example entry (uncomment and modify):
+  # - id: "FEAT-0001"
+  #   file: "specs/features/FEAT-0001-user-authentication.yaml"
+  #   status: "approved"  # draft | review | approved | implemented | deprecated
+  #   auto_implement: true  # Set to true to include in scheduled processing
+  #   priority: "high"
+  #   assignee: "username"
+  #   target_version: "1.0.0"
+  #   notes: "Core authentication feature"
+
+  # - id: "API-0001"
+  #   file: "specs/api/users-api.openapi.yaml"
+  #   status: "approved"
+  #   auto_implement: true
+  #   priority: "high"
+
+# Spec categories for organization
+categories:
+  features:
+    path: "specs/features"
+    schema: "specs/schemas/feature-spec.schema.json"
+    description: "Feature specifications"
+
+  api:
+    path: "specs/api"
+    schema: null  # Uses OpenAPI validation
+    description: "API specifications (OpenAPI 3.x)"
+
+  schemas:
+    path: "specs/schemas"
+    description: "JSON schemas for validation"
+
+# Processing hooks (shell commands)
+hooks:
+  # Run before processing any spec
+  pre_process: []
+    # - "npm run lint"
+    # - "npm run type-check"
+
+  # Run after successful implementation
+  post_process: []
+    # - "npm run format"
+    # - "npm run test"
+
+  # Run on validation failure
+  on_validation_failure: []
+    # - "echo 'Validation failed' | notify-slack"
+
+# Integration settings
+integrations:
+  # Slack notifications (requires SLACK_WEBHOOK_URL secret)
+  slack:
+    enabled: false
+    channel: "#engineering"
+    notify_on:
+      - "implementation_started"
+      - "implementation_completed"
+      - "implementation_failed"
+
+  # Jira integration (requires JIRA_* secrets)
+  jira:
+    enabled: false
+    project_key: ""
+    transition_on_implement: ""  # Jira transition ID
+
+  # Linear integration
+  linear:
+    enabled: false
+    team_id: ""

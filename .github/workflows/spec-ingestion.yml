@@ -1,0 +1,334 @@
+# Specification Ingestion Workflow
+# Triggers Claude Code CLI to implement features based on approved specifications
+#
+# Triggers:
+#   1. Manual dispatch with spec file path
+#   2. Push to specs/ directory with approved specs
+#   3. Scheduled processing of specs from configuration file
+#
+# Requirements:
+#   - ANTHROPIC_API_KEY secret configured
+#   - Claude Code CLI installed
+
+name: Spec Ingestion
+
+on:
+  # Manual trigger with spec file input
+  workflow_dispatch:
+    inputs:
+      spec_file:
+        description: "Path to specification file (e.g., specs/features/FEAT-0001.yaml)"
+        required: false
+        type: string
+      spec_id:
+        description: "Specification ID to process from config (e.g., FEAT-0001)"
+        required: false
+        type: string
+      dry_run:
+        description: "Run without making changes (validation only)"
+        required: false
+        type: boolean
+        default: false
+
+  # Trigger on approved spec changes
+  push:
+    branches:
+      - main
+    paths:
+      - "specs/features/*.yaml"
+      - "specs/api/*.yaml"
+      - "specs/api/*.json"
+
+  # Scheduled processing of pending specs
+  schedule:
+    - cron: "0 9 * * 1-5"  # 9 AM UTC, Monday-Friday
+
+  # Trigger via pull request approval
+  pull_request_review:
+    types: [submitted]
+
+env:
+  SPECS_CONFIG: "specs.config.yaml"
+  NODE_VERSION: "20"
+
+jobs:
+  # Validate specifications before processing
+  validate:
+    name: Validate Specifications
+    runs-on: ubuntu-latest
+    outputs:
+      specs_to_process: ${{ steps.determine-specs.outputs.specs }}
+      has_specs: ${{ steps.determine-specs.outputs.has_specs }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install validation tools
+        run: |
+          npm install -g ajv-cli yaml-lint
+
+      - name: Determine specs to process
+        id: determine-specs
+        run: |
+          SPECS_JSON="[]"
+
+          # Priority 1: Manual spec file input
+          if [ -n "${{ github.event.inputs.spec_file }}" ]; then
+            if [ -f "${{ github.event.inputs.spec_file }}" ]; then
+              SPECS_JSON=$(echo "[]" | jq --arg f "${{ github.event.inputs.spec_file }}" '. + [$f]')
+            else
+              echo "::error::Specified file does not exist: ${{ github.event.inputs.spec_file }}"
+              exit 1
+            fi
+
+          # Priority 2: Manual spec ID from config
+          elif [ -n "${{ github.event.inputs.spec_id }}" ]; then
+            if [ -f "${{ env.SPECS_CONFIG }}" ]; then
+              SPEC_FILE=$(yq e ".specifications[] | select(.id == \"${{ github.event.inputs.spec_id }}\") | .file" "${{ env.SPECS_CONFIG }}")
+              if [ -n "$SPEC_FILE" ] && [ -f "$SPEC_FILE" ]; then
+                SPECS_JSON=$(echo "[]" | jq --arg f "$SPEC_FILE" '. + [$f]')
+              else
+                echo "::error::Spec ID not found in config or file missing: ${{ github.event.inputs.spec_id }}"
+                exit 1
+              fi
+            fi
+
+          # Priority 3: Changed files in push
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            CHANGED_SPECS=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- 'specs/**/*.yaml' 'specs/**/*.json' | grep -v '_template' || true)
+            if [ -n "$CHANGED_SPECS" ]; then
+              SPECS_JSON=$(echo "$CHANGED_SPECS" | jq -R -s 'split("\n") | map(select(length > 0))')
+            fi
+
+          # Priority 4: Scheduled - process pending from config
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            if [ -f "${{ env.SPECS_CONFIG }}" ]; then
+              SPECS_JSON=$(yq e -o=json '.specifications | map(select(.status == "approved" and .auto_implement == true)) | .[].file' "${{ env.SPECS_CONFIG }}" | jq -R -s 'split("\n") | map(select(length > 0))')
+            fi
+
+          # Priority 5: PR approval - get specs from PR
+          elif [ "${{ github.event_name }}" = "pull_request_review" ] && [ "${{ github.event.review.state }}" = "approved" ]; then
+            CHANGED_SPECS=$(gh pr diff ${{ github.event.pull_request.number }} --name-only | grep -E '^specs/.*\.(yaml|json)$' | grep -v '_template' || true)
+            if [ -n "$CHANGED_SPECS" ]; then
+              SPECS_JSON=$(echo "$CHANGED_SPECS" | jq -R -s 'split("\n") | map(select(length > 0))')
+            fi
+          fi
+
+          echo "specs=$SPECS_JSON" >> $GITHUB_OUTPUT
+          if [ "$SPECS_JSON" != "[]" ]; then
+            echo "has_specs=true" >> $GITHUB_OUTPUT
+            echo "::notice::Specs to process: $SPECS_JSON"
+          else
+            echo "has_specs=false" >> $GITHUB_OUTPUT
+            echo "::notice::No specs to process"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Validate spec schemas
+        if: steps.determine-specs.outputs.has_specs == 'true'
+        run: |
+          SPECS='${{ steps.determine-specs.outputs.specs }}'
+          echo "$SPECS" | jq -r '.[]' | while read -r spec_file; do
+            echo "Validating: $spec_file"
+
+            # YAML lint check
+            if [[ "$spec_file" == *.yaml ]] || [[ "$spec_file" == *.yml ]]; then
+              yamllint -d relaxed "$spec_file" || echo "::warning::YAML lint issues in $spec_file"
+            fi
+
+            # JSON Schema validation for feature specs
+            if [[ "$spec_file" == specs/features/* ]]; then
+              # Convert YAML to JSON for validation
+              yq e -o=json "$spec_file" > /tmp/spec.json
+              ajv validate -s specs/schemas/feature-spec.schema.json -d /tmp/spec.json || {
+                echo "::error::Schema validation failed for $spec_file"
+                exit 1
+              }
+            fi
+
+            echo "::notice::Validated: $spec_file"
+          done
+
+  # Process specifications with Claude Code
+  implement:
+    name: Implement Specification
+    needs: validate
+    if: needs.validate.outputs.has_specs == 'true' && github.event.inputs.dry_run != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    strategy:
+      matrix:
+        spec: ${{ fromJson(needs.validate.outputs.specs_to_process) }}
+      max-parallel: 1  # Process one spec at a time
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Claude Code CLI
+        run: |
+          npm install -g @anthropic-ai/claude-code
+
+      - name: Extract spec metadata
+        id: spec-meta
+        run: |
+          SPEC_FILE="${{ matrix.spec }}"
+
+          if [[ "$SPEC_FILE" == *.yaml ]] || [[ "$SPEC_FILE" == *.yml ]]; then
+            SPEC_ID=$(yq e '.metadata.id // "UNKNOWN"' "$SPEC_FILE")
+            SPEC_TITLE=$(yq e '.metadata.title // "Unknown"' "$SPEC_FILE")
+            SPEC_PRIORITY=$(yq e '.metadata.priority // "medium"' "$SPEC_FILE")
+          else
+            SPEC_ID=$(jq -r '.metadata.id // "UNKNOWN"' "$SPEC_FILE")
+            SPEC_TITLE=$(jq -r '.metadata.title // "Unknown"' "$SPEC_FILE")
+            SPEC_PRIORITY=$(jq -r '.metadata.priority // "medium"' "$SPEC_FILE")
+          fi
+
+          BRANCH_NAME="spec/${SPEC_ID,,}"
+
+          echo "spec_id=$SPEC_ID" >> $GITHUB_OUTPUT
+          echo "spec_title=$SPEC_TITLE" >> $GITHUB_OUTPUT
+          echo "spec_priority=$SPEC_PRIORITY" >> $GITHUB_OUTPUT
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create feature branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b ${{ steps.spec-meta.outputs.branch_name }}
+
+      - name: Run Claude Code implementation
+        id: claude-implement
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          SPEC_FILE="${{ matrix.spec }}"
+
+          # Run the spec ingestion script
+          chmod +x scripts/ingest-spec.sh
+          ./scripts/ingest-spec.sh "$SPEC_FILE" 2>&1 | tee implementation.log
+
+          # Check for implementation success
+          if grep -q "Implementation completed successfully" implementation.log; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=partial" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit changes
+        run: |
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "feat(${{ steps.spec-meta.outputs.spec_id }}): ${{ steps.spec-meta.outputs.spec_title }}
+
+          Implements specification: ${{ matrix.spec }}
+
+          Generated by Claude Code via spec-ingestion workflow
+
+          Co-Authored-By: Claude <noreply@anthropic.com>"
+
+      - name: Push branch
+        run: |
+          git push -u origin ${{ steps.spec-meta.outputs.branch_name }}
+
+      - name: Create Pull Request
+        id: create-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SPEC_FILE="${{ matrix.spec }}"
+
+          # Extract spec content for PR body
+          if [[ "$SPEC_FILE" == *.yaml ]] || [[ "$SPEC_FILE" == *.yml ]]; then
+            SUMMARY=$(yq e '.description.summary' "$SPEC_FILE")
+            ACCEPTANCE_CRITERIA=$(yq e '.acceptance_criteria | .[] | "- [ ] " + .id + ": Given " + .given + ", when " + .when + ", then " + .then' "$SPEC_FILE")
+          else
+            SUMMARY=$(jq -r '.description.summary' "$SPEC_FILE")
+            ACCEPTANCE_CRITERIA=$(jq -r '.acceptance_criteria | .[] | "- [ ] \(.id): Given \(.given), when \(.when), then \(.then)"' "$SPEC_FILE")
+          fi
+
+          PR_URL=$(gh pr create \
+            --title "feat(${{ steps.spec-meta.outputs.spec_id }}): ${{ steps.spec-meta.outputs.spec_title }}" \
+            --body "$(cat <<EOF
+          ## Summary
+          $SUMMARY
+
+          ## Specification
+          - **ID**: ${{ steps.spec-meta.outputs.spec_id }}
+          - **Priority**: ${{ steps.spec-meta.outputs.spec_priority }}
+          - **Spec File**: \`${{ matrix.spec }}\`
+
+          ## Acceptance Criteria
+          $ACCEPTANCE_CRITERIA
+
+          ## Implementation Notes
+          This PR was automatically generated by Claude Code based on the approved specification.
+
+          ### Checklist
+          - [ ] Code review completed
+          - [ ] Tests passing
+          - [ ] Documentation updated
+          - [ ] Acceptance criteria verified
+
+          ---
+          *Generated by [spec-ingestion workflow](.github/workflows/spec-ingestion.yml)*
+          EOF
+          )" \
+            --label "automated,spec-implementation" \
+            --base main)
+
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          echo "::notice::Created PR: $PR_URL"
+
+      - name: Update spec status
+        if: success()
+        run: |
+          SPEC_FILE="${{ matrix.spec }}"
+
+          if [[ "$SPEC_FILE" == *.yaml ]] || [[ "$SPEC_FILE" == *.yml ]]; then
+            yq e -i '.metadata.status = "implemented"' "$SPEC_FILE"
+            yq e -i ".metadata.updated_at = \"$(date +%Y-%m-%d)\"" "$SPEC_FILE"
+          fi
+
+  # Summary job
+  summary:
+    name: Workflow Summary
+    needs: [validate, implement]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## Spec Ingestion Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Validation | ${{ needs.validate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Implementation | ${{ needs.implement.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Specs processed**: ${{ needs.validate.outputs.specs_to_process }}" >> $GITHUB_STEP_SUMMARY
