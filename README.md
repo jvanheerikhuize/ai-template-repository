@@ -95,7 +95,9 @@ See [Integrations Guide](docs/integrations.md) for the complete secrets referenc
 │   ├── integrations.md            # Integration setup guide
 │   └── runbooks/                  # Operational runbooks
 │       ├── incident-response.md
-│       └── spec-ingestion-failure.md
+│       ├── spec-ingestion-failure.md
+│       ├── workflow-troubleshooting.md
+│       └── integration-issues.md
 │
 ├── specs.config.yaml              # Central spec registry & integrations
 ├── CONTRIBUTING.md
@@ -459,6 +461,8 @@ The `docs/runbooks/` directory contains operational procedures:
 
 - [Incident Response](docs/runbooks/incident-response.md) - Production incident handling
 - [Spec Ingestion Failure](docs/runbooks/spec-ingestion-failure.md) - Troubleshooting automation failures
+- [Workflow Troubleshooting](docs/runbooks/workflow-troubleshooting.md) - Debug GitHub Actions issues
+- [Integration Issues](docs/runbooks/integration-issues.md) - Fix integration connectivity
 - [Runbook Template](docs/runbooks/_template.md) - Create new runbooks
 
 ## GitHub Actions Workflows
