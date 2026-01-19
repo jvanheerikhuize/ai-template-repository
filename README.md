@@ -7,10 +7,12 @@ A language-agnostic repository template for **Specification-Driven Development (
 This template provides a structured approach to software development where features are formally specified before implementation. It includes:
 
 - Formal specification templates and JSON schemas
-- Automated workflow for spec ingestion and implementation
-- Integration with Claude Code CLI for AI-assisted development
-- Enterprise-ready CI/CD pipelines
-- Comprehensive documentation and contribution guidelines
+- Automated workflow for spec ingestion and AI-assisted implementation
+- Integration with Claude Code CLI for intelligent code generation
+- Enterprise-ready CI/CD pipelines with GitHub Actions
+- Comprehensive integrations (Microsoft Teams, Azure DevOps, Slack, and more)
+- Operational runbooks and incident response procedures
+- Rich GitHub issue and PR templates
 
 ## Quick Start
 
@@ -26,17 +28,23 @@ rm -rf .git && git init
 
 ### 2. Configure Secrets
 
-Add these secrets to your GitHub repository:
+Add these secrets to your GitHub repository (Settings → Secrets → Actions):
 
-| Secret | Description |
-|--------|-------------|
-| `ANTHROPIC_API_KEY` | API key for Claude Code CLI |
+| Secret | Required | Description |
+|--------|----------|-------------|
+| `ANTHROPIC_API_KEY` | Yes | API key for Claude Code CLI |
+| `TEAMS_WEBHOOK_URL` | No | Microsoft Teams incoming webhook |
+| `AZURE_DEVOPS_PAT` | No | Azure DevOps Personal Access Token |
+| `SLACK_WEBHOOK_URL` | No | Slack incoming webhook |
+
+See [Integrations Guide](docs/integrations.md) for the complete secrets reference.
 
 ### 3. Customize
 
 1. Update `CODEOWNERS` with your team structure
-2. Modify `specs.config.yaml` settings
+2. Configure integrations in `specs.config.yaml`
 3. Adjust workflow triggers in `.github/workflows/spec-ingestion.yml`
+4. Review and customize issue templates in `.github/ISSUE_TEMPLATE/`
 
 ## Repository Structure
 
@@ -66,8 +74,15 @@ Add these secrets to your GitHub repository:
 ├── .github/
 │   ├── workflows/
 │   │   ├── spec-ingestion.yml     # Main automation workflow
-│   │   └── validate-specs.yml     # Spec validation
-│   ├── ISSUE_TEMPLATE/            # Issue templates
+│   │   ├── validate-specs.yml     # Spec validation
+│   │   └── notify-integrations.yml # Reusable notification workflow
+│   ├── ISSUE_TEMPLATE/            # Issue templates (6 templates)
+│   │   ├── bug-report.yaml
+│   │   ├── feature-request.yaml
+│   │   ├── spec-review.yaml
+│   │   ├── incident-report.yaml
+│   │   ├── documentation.yaml
+│   │   └── integration-request.yaml
 │   ├── pull_request_template.md
 │   └── CODEOWNERS
 │
@@ -76,10 +91,15 @@ Add these secrets to your GitHub repository:
 │   └── CLAUDE.md                  # Project instructions for Claude
 │
 ├── docs/
-│   └── spec-based-development.md  # SDD guide
+│   ├── spec-based-development.md  # SDD guide with rationale
+│   ├── integrations.md            # Integration setup guide
+│   └── runbooks/                  # Operational runbooks
+│       ├── incident-response.md
+│       └── spec-ingestion-failure.md
 │
-├── specs.config.yaml              # Central spec registry
+├── specs.config.yaml              # Central spec registry & integrations
 ├── CONTRIBUTING.md
+├── SECURITY.md
 └── README.md
 ```
 
@@ -229,31 +249,134 @@ Project-specific Claude Code configuration in `.claude/`:
 | `DRY_RUN` | No | Set to "true" for validation only |
 | `VERBOSE` | No | Set to "true" for detailed output |
 
-## Integration Points
+## Notification Events
 
-### Slack Notifications
+Integrations can subscribe to these events:
 
-Enable in `specs.config.yaml`:
+| Event | Description |
+|-------|-------------|
+| `spec_created` | New specification file added |
+| `spec_approved` | Specification status changed to approved |
+| `implementation_started` | AI implementation workflow began |
+| `implementation_completed` | Implementation finished successfully |
+| `implementation_failed` | Implementation encountered an error |
+| `pr_created` | Pull request was created |
+| `pr_merged` | Pull request was merged |
+| `validation_failed` | Schema validation failed |
+
+## Integrations
+
+This template supports extensive integrations with enterprise tools. Configure them in `specs.config.yaml`.
+
+### Microsoft Ecosystem
+
+#### Microsoft Teams
+
+Send notifications to Teams channels with Adaptive Cards support:
 
 ```yaml
 integrations:
-  slack:
+  teams:
     enabled: true
-    channel: "#engineering"
+    webhook_url: ""  # Or use TEAMS_WEBHOOK_URL secret
+    notify_on:
+      - "spec_approved"
+      - "implementation_started"
+      - "implementation_completed"
+      - "implementation_failed"
+    use_adaptive_cards: true
 ```
 
-Requires `SLACK_WEBHOOK_URL` secret.
+**Setup:**
+1. In Teams, go to your channel → `...` → Connectors
+2. Add "Incoming Webhook" and copy the URL
+3. Add `TEAMS_WEBHOOK_URL` to GitHub Secrets
 
-### Jira Integration
+#### Azure DevOps
+
+Sync specifications with Azure DevOps work items:
 
 ```yaml
 integrations:
-  jira:
+  azure_devops:
     enabled: true
-    project_key: "PROJ"
+    organization: "your-org"
+    project: "your-project"
+    work_item_type: "User Story"
+    area_path: "your-project\\Team"
+    iteration_path: "your-project\\Sprint 1"
 ```
 
-Requires `JIRA_*` secrets.
+**Required Secrets:** `AZURE_DEVOPS_ORG`, `AZURE_DEVOPS_PROJECT`, `AZURE_DEVOPS_PAT`
+
+#### GitHub Projects
+
+Track specs directly in GitHub Projects (v2):
+
+```yaml
+integrations:
+  github_projects:
+    enabled: true
+    project_number: 1
+    status_field: "Status"
+    status_mappings:
+      draft: "Backlog"
+      review: "In Review"
+      approved: "Ready"
+      implemented: "Done"
+```
+
+### Communication
+
+| Integration | Description | Secret Required |
+|-------------|-------------|-----------------|
+| **Microsoft Teams** | Rich Adaptive Cards notifications | `TEAMS_WEBHOOK_URL` |
+| **Slack** | Channel notifications with formatting | `SLACK_WEBHOOK_URL` |
+| **Discord** | Embedded message notifications | `DISCORD_WEBHOOK_URL` |
+| **Email** | SMTP-based email alerts | `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD` |
+
+### Project Management
+
+| Integration | Description | Secrets Required |
+|-------------|-------------|------------------|
+| **Azure DevOps** | Work item sync, status updates | `AZURE_DEVOPS_*` |
+| **GitHub Projects** | Native GitHub project boards | None (uses `GITHUB_TOKEN`) |
+| **Linear** | Issue tracking sync | `LINEAR_API_KEY` |
+| **Jira** | Atlassian issue sync | `JIRA_*` |
+
+### Incident Management
+
+| Integration | Description | Secret Required |
+|-------------|-------------|-----------------|
+| **PagerDuty** | Alert on-call on failures | `PAGERDUTY_ROUTING_KEY` |
+| **Opsgenie** | Alert management | `OPSGENIE_API_KEY` |
+
+### Observability
+
+| Integration | Description | Secrets Required |
+|-------------|-------------|------------------|
+| **Datadog** | Metrics and events | `DATADOG_API_KEY`, `DATADOG_APP_KEY` |
+| **New Relic** | Custom events | `NEW_RELIC_API_KEY` |
+| **Sentry** | Error reporting | `SENTRY_DSN` |
+
+### Custom Webhooks
+
+Send notifications to any HTTP endpoint:
+
+```yaml
+integrations:
+  webhooks:
+    enabled: true
+    endpoints:
+      - name: "internal-system"
+        url: "https://internal.example.com/webhook"
+        events: ["implementation_completed"]
+        headers:
+          Authorization: "Bearer ${WEBHOOK_TOKEN}"
+        secret: "${WEBHOOK_SECRET}"  # HMAC signature
+```
+
+See [docs/integrations.md](docs/integrations.md) for complete setup instructions.
 
 ## Best Practices
 
@@ -317,11 +440,43 @@ The `.ai/` directory provides structured context for AI assistants:
 | `PATTERNS.md` | Code conventions | When patterns evolve |
 | `decisions/*.md` | Decision records | After significant decisions |
 
+## GitHub Issue Templates
+
+This template includes 6 issue templates for comprehensive project management:
+
+| Template | Purpose |
+|----------|---------|
+| **Bug Report** | Report bugs with component selection and related spec linking |
+| **Feature Request** | Request new features with category and complexity assessment |
+| **Spec Review** | Submit specifications for review and approval |
+| **Incident Report** | Document production incidents with severity levels |
+| **Documentation** | Request documentation improvements or additions |
+| **Integration Request** | Request new tool integrations |
+
+## Operational Runbooks
+
+The `docs/runbooks/` directory contains operational procedures:
+
+- [Incident Response](docs/runbooks/incident-response.md) - Production incident handling
+- [Spec Ingestion Failure](docs/runbooks/spec-ingestion-failure.md) - Troubleshooting automation failures
+- [Runbook Template](docs/runbooks/_template.md) - Create new runbooks
+
+## GitHub Actions Workflows
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `spec-ingestion.yml` | Push, manual, schedule, PR approval | Main spec processing and implementation |
+| `validate-specs.yml` | Pull request | Validate spec files before merge |
+| `notify-integrations.yml` | Called by other workflows | Reusable notification dispatch |
+
 ## Documentation
 
-- [Spec-Based Development Guide](docs/spec-based-development.md) - Detailed workflow guide
+- [Spec-Based Development Guide](docs/spec-based-development.md) - Detailed workflow guide with rationale
+- [Integrations Guide](docs/integrations.md) - Complete integration setup instructions
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute
+- [Security Policy](SECURITY.md) - Reporting vulnerabilities
 - [AI Context Guide](.ai/README.md) - AI documentation system
+- [Runbooks](docs/runbooks/) - Operational procedures
 - [Feature Spec Template](specs/features/_template.yaml) - Feature specification format
 - [API Spec Template](specs/api/_template.openapi.yaml) - OpenAPI specification format
 
