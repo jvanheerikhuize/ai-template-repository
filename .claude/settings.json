@@ -39,6 +39,8 @@
     ".env*"
   ],
   "contextFiles": [
+    ".ai/CONTEXT.md",
+    ".ai/architecture/PATTERNS.md",
     "README.md",
     "specs.config.yaml",
     "CONTRIBUTING.md"

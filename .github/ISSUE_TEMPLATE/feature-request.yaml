@@ -12,7 +12,30 @@ body:
 
         Thank you for suggesting a feature! This issue will be used to discuss the idea before a formal specification is created.
 
-        **Note:** All features require a specification before implementation. After discussion, a spec will be created in `specs/features/`.
+        **Process:**
+        1. Submit this feature request
+        2. Discussion and refinement
+        3. If approved, create formal spec in `specs/features/`
+        4. Spec review and approval
+        5. Implementation
+
+        See [Spec-Based Development Guide](docs/spec-based-development.md) for details.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      options:
+        - Core Functionality
+        - Integration
+        - Automation/Workflow
+        - Developer Experience
+        - Documentation
+        - Performance
+        - Security
+        - Other
+    validations:
+      required: true
 
   - type: textarea
     id: problem
@@ -20,8 +43,13 @@ body:
       label: Problem Statement
       description: What problem does this feature solve? Who is affected?
       placeholder: |
+        **Who is affected:** [developers, ops team, etc.]
+
+        **Current situation:**
         Currently, users cannot...
-        This causes...
+
+        **Impact:**
+        This causes... [time lost, errors, frustration]
     validations:
       required: true
 
@@ -33,6 +61,27 @@ body:
       placeholder: |
         The feature should...
         Users would be able to...
+
+        **User flow:**
+        1. User does X
+        2. System responds with Y
+        3. Result is Z
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Success Criteria (Draft)
+      description: How would we know this feature is complete? Use Given/When/Then format if possible.
+      placeholder: |
+        - Given [context], when [action], then [result]
+        - Given [context], when [action], then [result]
+
+        Or simply:
+        - Users can...
+        - System shows...
+        - Performance is...
     validations:
       required: true
 
@@ -40,10 +89,17 @@ body:
     id: alternatives
     attributes:
       label: Alternatives Considered
-      description: What other solutions have you considered?
+      description: What other solutions have you considered? Why were they rejected?
       placeholder: |
-        Alternative 1: ...
-        Alternative 2: ...
+        **Alternative 1:** [Description]
+        - Pros: ...
+        - Cons: ...
+        - Why rejected: ...
+
+        **Alternative 2:** [Description]
+        - Pros: ...
+        - Cons: ...
+        - Why rejected: ...
     validations:
       required: false
 
@@ -60,26 +116,45 @@ body:
     validations:
       required: true
 
-  - type: textarea
-    id: acceptance
+  - type: dropdown
+    id: complexity
     attributes:
-      label: Success Criteria
-      description: How would we know this feature is complete? List testable criteria.
-      placeholder: |
-        - Users can...
-        - System shows...
-        - Performance is...
+      label: Estimated Complexity
+      description: How complex do you think this feature is?
+      options:
+        - Small - Few hours of work
+        - Medium - Few days of work
+        - Large - Week or more
+        - Unknown - Needs investigation
     validations:
       required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Does this feature depend on other features, specs, or external systems?
+      placeholder: |
+        - Depends on FEAT-0001
+        - Requires integration with [system]
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any mockups, diagrams, examples, or additional information
+    validations:
+      required: false
 
   - type: checkboxes
     id: checklist
     attributes:
       label: Pre-submission Checklist
       options:
-        - label: I have searched existing issues to avoid duplicates
+        - label: I have searched existing issues and specs to avoid duplicates
           required: true
-        - label: I have checked this isn't already covered by an existing spec
+        - label: I have provided clear success criteria
           required: true
-        - label: I am willing to help write the specification for this feature
-          required: false
+        - label: I am willing to help write the formal specification for this feature

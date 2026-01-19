@@ -19,7 +19,7 @@ This template provides a structured approach to software development where featu
 Click "Use this template" on GitHub or clone and reinitialize:
 
 ```bash
-git clone https://github.com/your-org/template-repository.git my-project
+git clone https://github.com/jvanheerikhuize/spec-driven-development-template.git my-project
 cd my-project
 rm -rf .git && git init
 ```
@@ -41,7 +41,18 @@ Add these secrets to your GitHub repository:
 ## Repository Structure
 
 ```
-├── specs/                          # Specifications
+├── .ai/                            # AI Context System
+│   ├── CONTEXT.md                 # Master context (AI starts here)
+│   ├── config.yaml                # AI behavior configuration
+│   ├── specs/
+│   │   └── SPEC.md               # Product specification template
+│   ├── architecture/
+│   │   ├── ARCHITECTURE.md       # System architecture
+│   │   └── PATTERNS.md           # Code patterns & conventions
+│   ├── decisions/                 # Architecture Decision Records
+│   └── prompts/                   # Reusable prompt templates
+│
+├── specs/                          # Implementation Specifications
 │   ├── features/                   # Feature specs (YAML)
 │   │   └── _template.yaml         # Feature template
 │   ├── api/                        # API specs (OpenAPI 3.1)
@@ -54,7 +65,8 @@ Add these secrets to your GitHub repository:
 │
 ├── .github/
 │   ├── workflows/
-│   │   └── spec-ingestion.yml     # Main automation workflow
+│   │   ├── spec-ingestion.yml     # Main automation workflow
+│   │   └── validate-specs.yml     # Spec validation
 │   ├── ISSUE_TEMPLATE/            # Issue templates
 │   ├── pull_request_template.md
 │   └── CODEOWNERS
@@ -270,17 +282,68 @@ Use Gherkin format for clarity:
 - Write tests for each criterion
 - Don't over-engineer
 
+## AI Context System
+
+The `.ai/` directory provides structured context for AI assistants:
+
+```
+.ai/
+├── CONTEXT.md          # Start here - project overview & current state
+├── config.yaml         # AI behavior preferences
+├── specs/SPEC.md       # Product specification (WHAT to build)
+├── architecture/
+│   ├── ARCHITECTURE.md # System design (HOW it's built)
+│   └── PATTERNS.md     # Code conventions (HOW to write code)
+├── decisions/          # ADRs (WHY decisions were made)
+└── prompts/            # Reusable prompt templates
+```
+
+### How AI Tools Use This
+
+| Tool | Entry Point | Auto-loaded |
+|------|-------------|-------------|
+| Claude Code | `.claude/CLAUDE.md` → `.ai/CONTEXT.md` | Yes |
+| GitHub Copilot | `.ai/CONTEXT.md` | Manual |
+| Cursor | `.ai/` directory | Indexable |
+| Other AI | `.ai/CONTEXT.md` | Manual |
+
+### Key Documents
+
+| Document | Purpose | When to Update |
+|----------|---------|----------------|
+| `CONTEXT.md` | Current project state | Weekly / after major changes |
+| `SPEC.md` | Product requirements | Before new features |
+| `ARCHITECTURE.md` | System design | After architectural changes |
+| `PATTERNS.md` | Code conventions | When patterns evolve |
+| `decisions/*.md` | Decision records | After significant decisions |
+
 ## Documentation
 
 - [Spec-Based Development Guide](docs/spec-based-development.md) - Detailed workflow guide
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute
+- [AI Context Guide](.ai/README.md) - AI documentation system
 - [Feature Spec Template](specs/features/_template.yaml) - Feature specification format
 - [API Spec Template](specs/api/_template.openapi.yaml) - OpenAPI specification format
 
 ## License
 
-[Add your license here]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Author & Contributors
+
+**Created by:** Jerry van Heerikhuize ([@jvanheerikhuize](https://github.com/jvanheerikhuize))
+
+**Contributors:**
+- Claude (Anthropic) - AI pair programming assistant
+
+## Acknowledgments
+
+- Built with [Claude Code](https://github.com/anthropics/claude-code) - Anthropic's AI coding assistant
+- Inspired by specification-driven development best practices
+- OpenAPI templates based on [OpenAPI 3.1 Specification](https://spec.openapis.org/oas/v3.1.0)
 
 ---
 
-Built for spec-driven development with [Claude Code](https://github.com/anthropics/claude-code)
+<p align="center">
+  Built for spec-driven development with <a href="https://github.com/anthropics/claude-code">Claude Code</a>
+</p>

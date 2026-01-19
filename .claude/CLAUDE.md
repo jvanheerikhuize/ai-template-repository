@@ -2,27 +2,63 @@
 
 This document provides context and guidelines for Claude Code when working with this repository.
 
+## Quick Start
+
+**Before doing anything, read these files for context:**
+1. `.ai/CONTEXT.md` - Project overview and current state
+2. `.ai/architecture/PATTERNS.md` - Code patterns to follow
+3. `.ai/config.yaml` - AI behavior preferences
+
 ## Project Overview
 
-This is a **language-agnostic template repository** designed for **spec-based development**. Features are implemented based on formal specifications rather than ad-hoc requests.
+This is a **language-agnostic template repository** designed for **spec-based development** with AI assistant integration. Features are implemented based on formal specifications rather than ad-hoc requests.
 
 ## Repository Structure
 
 ```
-├── specs/                    # All specifications
-│   ├── features/            # Feature specifications (YAML)
-│   ├── api/                 # API specifications (OpenAPI)
+├── .ai/                      # AI context and documentation
+│   ├── CONTEXT.md           # Master context file (START HERE)
+│   ├── config.yaml          # AI behavior configuration
+│   ├── specs/               # Product specifications
+│   │   └── SPEC.md         # Product specification template
+│   ├── architecture/        # Technical documentation
+│   │   ├── ARCHITECTURE.md # System architecture
+│   │   └── PATTERNS.md     # Code patterns and conventions
+│   ├── decisions/           # Architecture Decision Records
+│   └── prompts/             # Reusable prompt templates
+│
+├── specs/                    # Implementation specifications
+│   ├── features/            # Feature specs (YAML)
+│   ├── api/                 # API specs (OpenAPI)
 │   └── schemas/             # JSON schemas for validation
+│
 ├── scripts/                  # Automation scripts
 │   └── ingest-spec.sh       # Spec processing script
+│
 ├── .github/
 │   ├── workflows/           # CI/CD workflows
-│   │   └── spec-ingestion.yml
+│   │   ├── spec-ingestion.yml
+│   │   └── validate-specs.yml
 │   └── ISSUE_TEMPLATE/      # Issue templates
-├── docs/                     # Documentation
+│
+├── docs/                     # User-facing documentation
 ├── specs.config.yaml         # Central spec registry
 └── .claude/                  # Claude Code configuration
 ```
+
+## Context Hierarchy
+
+When you need information, follow this hierarchy:
+
+| Question | Where to Look |
+|----------|---------------|
+| What does this project do? | `.ai/CONTEXT.md` → `.ai/specs/SPEC.md` |
+| How is it built? | `.ai/architecture/ARCHITECTURE.md` |
+| What patterns should I follow? | `.ai/architecture/PATTERNS.md` |
+| Why was X decided? | `.ai/decisions/` |
+| What feature should I implement? | `specs/features/*.yaml` |
+| What's the API contract? | `specs/api/*.yaml` |
+| What's pending/approved? | `specs.config.yaml` |
 
 ## Spec-Based Development Workflow
 
@@ -34,9 +70,10 @@ This is a **language-agnostic template repository** designed for **spec-based de
 ## When Implementing Specs
 
 ### DO:
+- Read `.ai/CONTEXT.md` first for project context
 - Read and understand the entire spec before coding
+- Follow patterns in `.ai/architecture/PATTERNS.md`
 - Implement ALL acceptance criteria
-- Follow existing patterns in the codebase
 - Create appropriate tests for each acceptance criterion
 - Keep implementations minimal and focused on the spec
 - Document any decisions made when spec is ambiguous
@@ -47,6 +84,7 @@ This is a **language-agnostic template repository** designed for **spec-based de
 - Skip acceptance criteria
 - Ignore existing code patterns
 - Make breaking changes without spec approval
+- Modify security-related code without explicit request
 
 ## Spec File Formats
 
@@ -62,7 +100,7 @@ This is a **language-agnostic template repository** designed for **spec-based de
 
 ## Code Conventions
 
-Since this is language-agnostic, follow these general principles:
+Read `.ai/architecture/PATTERNS.md` for detailed patterns. Key principles:
 
 1. **Match existing style** - If code exists, match its patterns
 2. **Standard tooling** - Use language-standard formatters/linters
@@ -100,7 +138,17 @@ The central configuration tracks all specs:
 ## Important Files to Read
 
 Before implementing any spec, read:
-1. The spec file itself (thoroughly)
-2. `specs.config.yaml` for context
-3. Related existing code
-4. Existing tests for patterns
+1. `.ai/CONTEXT.md` - Current project state
+2. `.ai/architecture/PATTERNS.md` - Code patterns
+3. The spec file itself (thoroughly)
+4. `specs.config.yaml` for context
+5. Related existing code
+6. Existing tests for patterns
+
+## AI Configuration
+
+Check `.ai/config.yaml` for:
+- Code generation preferences
+- Testing requirements
+- Behavior settings
+- Domain-specific terminology

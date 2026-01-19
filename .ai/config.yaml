@@ -1,0 +1,173 @@
+# AI Context Configuration
+# Configures how AI assistants should interact with this codebase
+#
+# This file can be read by various AI tools to understand project preferences.
+# Claude Code reads this via .claude/CLAUDE.md references.
+
+version: "1.0"
+
+# Project identification
+# TODO: Update these values for your project
+project:
+  name: "Spec-Driven Development Template"  # Update with your project name
+  type: "template"  # application | library | cli | api | template
+  language: "agnostic"  # Primary language (this template is language-agnostic)
+  maturity: "production"  # development | production | maintenance
+
+# Context loading configuration
+context:
+  # Files AI should read first for context
+  entry_points:
+    - ".ai/CONTEXT.md"  # Always start here
+    - ".ai/specs/SPEC.md"
+    - ".ai/architecture/ARCHITECTURE.md"
+
+  # Additional context files to include
+  include:
+    - ".ai/architecture/PATTERNS.md"
+    - "specs.config.yaml"
+    - "package.json"  # or equivalent for your language
+
+  # Files/patterns to exclude from context
+  exclude:
+    - "node_modules/**"
+    - "dist/**"
+    - "*.lock"
+    - "*.log"
+    - ".env*"
+
+  # Maximum context size preferences
+  limits:
+    max_file_size_kb: 100  # Skip files larger than this
+    max_files_in_context: 20  # Limit concurrent files
+
+# Code generation preferences
+code_generation:
+  # Style preferences
+  style:
+    indent: 2
+    quotes: "single"  # single | double
+    semicolons: true
+    trailing_commas: "es5"
+
+  # What to include in generated code
+  include:
+    types: true
+    jsdoc: "public_only"  # none | public_only | all
+    error_handling: true
+    logging: true
+
+  # What to avoid
+  avoid:
+    comments_for_obvious_code: true
+    over_engineering: true
+    premature_optimization: true
+
+  # Testing requirements
+  testing:
+    require_tests: true
+    test_framework: "jest"  # jest | vitest | mocha | pytest | etc.
+    minimum_coverage: 80
+    test_location: "colocated"  # colocated | separate
+
+# Behavior preferences
+behavior:
+  # How AI should approach tasks
+  approach:
+    ask_before_major_changes: true
+    prefer_minimal_changes: true
+    explain_trade_offs: true
+    suggest_alternatives: false  # Set to true if you want options
+
+  # Response format preferences
+  responses:
+    include_file_paths: true
+    include_line_numbers: true
+    format: "concise"  # concise | detailed | verbose
+
+  # Safety preferences
+  safety:
+    confirm_deletions: true
+    confirm_security_changes: true
+    warn_breaking_changes: true
+    require_tests_for_logic: true
+
+# Domain-specific terminology
+# Helps AI understand your business domain
+domain:
+  # Define your ubiquitous language
+  terms:
+    # Example:
+    # - term: "Workspace"
+    #   definition: "A container for projects belonging to a team"
+    #   synonyms: ["Organization", "Team Space"]
+    []
+
+  # Business rules AI should respect
+  rules:
+    # Example:
+    # - "Users must have verified email before creating workspaces"
+    # - "Free tier limited to 3 projects"
+    []
+
+# Integration settings
+integrations:
+  # Claude Code specific
+  claude_code:
+    enabled: true
+    model_preference: "claude-sonnet-4-20250514"
+    auto_read_context: true
+
+  # GitHub Copilot
+  copilot:
+    enabled: false
+    workspace_context: true
+
+  # Cursor
+  cursor:
+    enabled: false
+    codebase_indexing: true
+
+# Spec-based development settings
+specs:
+  # How to handle specifications
+  require_spec_for_features: true
+  auto_implement_approved: true
+
+  # Validation
+  validate_against_schema: true
+  require_acceptance_criteria: true
+
+# Custom prompts/instructions
+# Additional instructions for AI assistants
+custom_instructions: |
+  When working on this codebase:
+
+  1. ALWAYS read .ai/CONTEXT.md first for project overview
+  2. Follow patterns in .ai/architecture/PATTERNS.md
+  3. Check .ai/decisions/ for context on past decisions
+  4. Implement specs exactly as written - no extras
+  5. Write tests for all business logic
+
+  Priority order when making decisions:
+  1. Security > Correctness > Performance > Readability
+
+# Environments
+environments:
+  development:
+    debug_logging: true
+    verbose_errors: true
+
+  production:
+    debug_logging: false
+    verbose_errors: false
+
+# Hooks for AI tools (optional)
+hooks:
+  # Commands to run before/after AI operations
+  pre_generation: []
+    # - "npm run lint"
+
+  post_generation: []
+    # - "npm run format"
+    # - "npm run test"
