@@ -22,14 +22,10 @@ Use the next sequential TR-NNN ID. Fill in what you know; leave unknowns as `—
 
 | ID | Request | Spec | ADR | Key Files Changed | PR / Commit | Status |
 |----|---------|------|-----|-------------------|-------------|--------|
-| TR-001 | Add mandatory AI directives file to `.ai/` folder | — | [ADR-001](../decisions/ADR-001-add-ai-directives-system.md) | `.ai/DIRECTIVES.md`, `.ai/config.yaml`, `.ai/CONTEXT.md`, `.claude/CLAUDE.md` | — | Implemented |
-| TR-002 | Make decisions system work in fresh clones; auto-document decisions | — | [ADR-001](../decisions/ADR-001-add-ai-directives-system.md) | `.ai/decisions/README.md`, `.ai/decisions/INDEX.md`, `.ai/decisions/ADR-001-*.md`, `.claude/CLAUDE.md` | — | Implemented |
-| TR-003 | Add persistent memory and end-to-end traceability to `.ai/` | — | [ADR-002](../decisions/ADR-002-add-ai-memory-system.md) | `.ai/memory/README.md`, `.ai/memory/SESSION_LOG.md`, `.ai/memory/LEARNINGS.md`, `.ai/memory/TRACEABILITY.md` | — | Implemented |
-| TR-004 | Add persistent authorization registry with base rules and learned authorizations | — | [ADR-003](../decisions/ADR-003-add-authorization-registry.md) | `.ai/memory/AUTHORIZATIONS.md`, `.ai/DIRECTIVES.md` (§3c), `.ai/config.yaml`, `.ai/CONTEXT.md`, `.ai/memory/README.md` | — | Implemented |
 
 ---
 
-**Next TR ID: 005**
+**Next TR ID: 001**
 
 ---
 

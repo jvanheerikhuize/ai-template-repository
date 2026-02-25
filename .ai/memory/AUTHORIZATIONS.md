@@ -111,8 +111,7 @@ Authorizations the AI has learned from specific user approvals or denials. Appen
 
 | ID | Category | Scope | Status | Date | Session | Origin | Notes |
 |----|----------|-------|--------|------|---------|--------|-------|
-| AUTH-001 | `delete-directories` | Any directory in the repository | granted | 2026-02-25 | 001 | User approved removal of `.ai/prompts/`; confirmed this generalizes to any directory | Bootstrapped from session 001 |
 
 ---
 
-**Next AUTH number: 002**
+**Next AUTH number: 001**
