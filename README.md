@@ -344,6 +344,7 @@ The `docs/runbooks/` directory contains operational procedures:
 - [Spec Ingestion Failure](docs/runbooks/spec-ingestion-failure.md) - Troubleshooting automation failures
 - [Workflow Troubleshooting](docs/runbooks/workflow-troubleshooting.md) - Debug GitHub Actions issues
 - [Integration Issues](docs/runbooks/integration-issues.md) - Fix integration connectivity
+- [Template Sync](docs/runbooks/template-sync.md) - Pull template updates into derived repositories
 
 ## Documentation
 
