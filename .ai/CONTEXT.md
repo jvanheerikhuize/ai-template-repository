@@ -14,6 +14,11 @@
 
 | Document | Purpose | When to Read |
 |----------|---------|--------------|
+| [DIRECTIVES.md](DIRECTIVES.md) | Mandatory AI rules | **Always — before anything else** |
+| [memory/AUTHORIZATIONS.md](memory/AUTHORIZATIONS.md) | What the AI is/isn't allowed to do | Before any gated action |
+| [memory/SESSION_LOG.md](memory/SESSION_LOG.md) | Session history | Start of every session |
+| [memory/LEARNINGS.md](memory/LEARNINGS.md) | Accumulated project knowledge | Before touching existing code |
+| [memory/TRACEABILITY.md](memory/TRACEABILITY.md) | Request → code audit trail | When implementing or investigating |
 | [SPEC.md](specs/SPEC.md) | Product requirements | Understanding WHAT to build |
 | [ARCHITECTURE.md](architecture/ARCHITECTURE.md) | System design | Understanding HOW it's built |
 | [PATTERNS.md](architecture/PATTERNS.md) | Code conventions | Writing or reviewing code |

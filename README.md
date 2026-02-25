@@ -9,10 +9,11 @@ This template provides a structured approach to software development where featu
 - Formal specification templates and JSON schemas
 - Cross-platform automation scripts (Bash & PowerShell)
 - Support for multiple AI CLIs (Claude, Aider, Copilot, Cody, and more)
-- Multi-platform GitHub Actions workflows (Ubuntu, Windows, macOS)
 - Enterprise integrations (Microsoft Teams, Azure DevOps, Slack, and more)
 - Operational runbooks and incident response procedures
 - Rich GitHub issue and PR templates
+- AI persistent memory system (session log, learnings, traceability, authorizations)
+- Architecture Decision Records (ADRs) with automatic indexing
 
 ### Key Principles
 
@@ -70,15 +71,24 @@ Add these secrets to your GitHub repository (Settings → Secrets → Actions):
 
 ```
 ├── .ai/                            # AI Context System (works with any AI tool)
+│   ├── DIRECTIVES.md              # Mandatory AI rules — loaded first
 │   ├── CONTEXT.md                 # Master context (AI starts here)
 │   ├── config.yaml                # AI behavior configuration
+│   ├── memory/                    # AI persistent memory
+│   │   ├── AUTHORIZATIONS.md     # What the AI is/isn't allowed to do
+│   │   ├── SESSION_LOG.md        # Chronological session log
+│   │   ├── LEARNINGS.md          # Accumulated project knowledge
+│   │   └── TRACEABILITY.md       # Request → code audit trail
 │   ├── specs/
 │   │   └── SPEC.md               # Product specification template
 │   ├── architecture/
 │   │   ├── ARCHITECTURE.md       # System architecture
 │   │   └── PATTERNS.md           # Code patterns & conventions
-│   ├── decisions/                 # Architecture Decision Records
-│   └── prompts/                   # Reusable prompt templates
+│   └── decisions/                 # Architecture Decision Records
+│       ├── README.md              # ADR process guide
+│       ├── INDEX.md               # Living index of all ADRs
+│       ├── template.md            # Blank ADR template
+│       └── ADR-NNN-*.md          # Individual decision records
 │
 ├── specs/                          # Implementation Specifications
 │   ├── features/                   # Feature specs (YAML)
@@ -88,15 +98,13 @@ Add these secrets to your GitHub repository (Settings → Secrets → Actions):
 │   └── schemas/                    # JSON schemas
 │       └── feature-spec.schema.json
 │
-├── scripts/                        # Cross-Platform Automation
-│   ├── ingest-spec.sh             # Bash/Unix script
-│   └── Invoke-SpecIngestion.ps1   # PowerShell script
+├── src/                            # All implementation code (create if absent)
+│
+├── scripts/                        # Template repo tooling only — do not add code here
+│   ├── ingest-spec.sh             # Spec ingestion helper (Bash/Unix)
+│   └── Invoke-SpecIngestion.ps1   # Spec ingestion helper (PowerShell)
 │
 ├── .github/
-│   ├── workflows/
-│   │   ├── spec-ingestion.yml     # Main automation (multi-platform)
-│   │   ├── validate-specs.yml     # Spec validation
-│   │   └── notify-integrations.yml # Notification dispatch
 │   ├── ISSUE_TEMPLATE/            # Issue templates (6 templates)
 │   ├── pull_request_template.md
 │   └── CODEOWNERS
@@ -123,7 +131,7 @@ Add these secrets to your GitHub repository (Settings → Secrets → Actions):
 
 ## Supported AI CLIs
 
-The automation scripts and workflows auto-detect and support multiple AI coding assistants:
+The automation scripts auto-detect and support multiple AI coding assistants:
 
 | AI CLI | Install | API Key | Best For |
 |--------|---------|---------|----------|
@@ -297,14 +305,23 @@ The `.ai/` directory provides structured context for **any** AI coding assistant
 
 ```
 .ai/
-├── CONTEXT.md          # Start here - project overview & current state
+├── DIRECTIVES.md       # Mandatory AI rules (loaded before everything else)
+├── CONTEXT.md          # Start here — project overview & current state
 ├── config.yaml         # AI behavior preferences & tool settings
+├── memory/             # AI persistent memory
+│   ├── AUTHORIZATIONS.md  # Base rules + learned action permissions
+│   ├── SESSION_LOG.md     # Chronological log of every session
+│   ├── LEARNINGS.md       # Accumulated project knowledge & gotchas
+│   └── TRACEABILITY.md    # Request → spec → ADR → code → PR audit trail
 ├── specs/SPEC.md       # Product specification (WHAT to build)
 ├── architecture/
 │   ├── ARCHITECTURE.md # System design (HOW it's built)
 │   └── PATTERNS.md     # Code conventions (HOW to write code)
-├── decisions/          # ADRs (WHY decisions were made)
-└── prompts/            # Reusable prompt templates
+└── decisions/          # Architecture Decision Records (WHY decisions were made)
+    ├── README.md       # ADR process guide & trigger conditions
+    ├── INDEX.md        # Living index of all ADRs
+    ├── template.md     # Blank template to copy
+    └── ADR-NNN-*.md   # Individual decision records
 ```
 
 ### How AI Tools Use This
@@ -327,14 +344,6 @@ The `docs/runbooks/` directory contains operational procedures:
 - [Spec Ingestion Failure](docs/runbooks/spec-ingestion-failure.md) - Troubleshooting automation failures
 - [Workflow Troubleshooting](docs/runbooks/workflow-troubleshooting.md) - Debug GitHub Actions issues
 - [Integration Issues](docs/runbooks/integration-issues.md) - Fix integration connectivity
-
-## GitHub Actions Workflows
-
-| Workflow | Trigger | Platform Support | Purpose |
-|----------|---------|------------------|---------|
-| `spec-ingestion.yml` | Push, manual, schedule | Ubuntu, Windows, macOS | Main spec processing |
-| `validate-specs.yml` | Pull request | Ubuntu | Validate spec files |
-| `notify-integrations.yml` | Called by workflows | Ubuntu | Send notifications |
 
 ## Documentation
 

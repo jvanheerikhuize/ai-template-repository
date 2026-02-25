@@ -6,9 +6,10 @@
 ## Quick Start
 
 **Before doing anything, read these files for context:**
-1. `.ai/CONTEXT.md` - Project overview and current state
-2. `.ai/architecture/PATTERNS.md` - Code patterns to follow
-3. `.ai/config.yaml` - AI behavior preferences
+1. `.ai/DIRECTIVES.md` - Mandatory rules you must always comply with
+2. `.ai/CONTEXT.md` - Project overview and current state
+3. `.ai/architecture/PATTERNS.md` - Code patterns to follow
+4. `.ai/config.yaml` - AI behavior preferences
 
 ## Project Overview
 
@@ -32,22 +33,25 @@ This is a **language-agnostic, platform-agnostic template repository** designed 
 │   │   ├── ARCHITECTURE.md # System architecture
 │   │   └── PATTERNS.md     # Code patterns and conventions
 │   ├── decisions/           # Architecture Decision Records
-│   └── prompts/             # Reusable prompt templates
+│   │   ├── README.md       # ADR process guide
+│   │   ├── INDEX.md        # Living index of all ADRs
+│   │   ├── template.md     # Blank ADR template
+│   │   └── ADR-NNN-*.md   # Individual decision records
+│   └── memory/              # AI persistent memory (SESSION_LOG, LEARNINGS, TRACEABILITY)
 │
 ├── specs/                    # Implementation specifications
 │   ├── features/            # Feature specs (YAML)
 │   ├── api/                 # API specs (OpenAPI)
 │   └── schemas/             # JSON schemas for validation
 │
-├── scripts/                  # Automation scripts (cross-platform)
-│   ├── ingest-spec.sh       # Bash/Unix script
-│   └── Invoke-SpecIngestion.ps1  # PowerShell script
+├── scripts/                  # TEMPLATE REPO SCRIPTS ONLY — do not put implementation code here
+│   ├── ingest-spec.sh       # Spec ingestion helper (Bash/Unix)
+│   └── Invoke-SpecIngestion.ps1  # Spec ingestion helper (PowerShell)
+│                             # All AI-generated application code goes in src/ instead
+│
+├── src/                      # All implementation code lives here (create if absent)
 │
 ├── .github/
-│   ├── workflows/           # CI/CD workflows
-│   │   ├── spec-ingestion.yml
-│   │   ├── validate-specs.yml
-│   │   └── notify-integrations.yml
 │   └── ISSUE_TEMPLATE/      # Issue templates
 │
 ├── docs/
@@ -91,6 +95,7 @@ When you need information, follow this hierarchy:
 - Create appropriate tests for each acceptance criterion
 - Keep implementations minimal and focused on the spec
 - Document any decisions made when spec is ambiguous
+- **Create an ADR** in `.ai/decisions/` for every architectural, hard-to-reverse, or non-obvious decision — see `.ai/decisions/README.md` for trigger conditions and `.ai/decisions/INDEX.md` for the next number
 
 ### DON'T:
 - Add features not in the spec
