@@ -1,63 +1,53 @@
-# ADR-000: [Short Title of Decision]
+---
+id: "ADR-000"
+title: "Short Title of Decision"
+status: proposed        # proposed | accepted | deprecated | superseded
+date: "YYYY-MM-DD"      # ISO 8601 date the decision was made
+decision_makers:
+  - "🚨 INIT REQUIRED"
+consulted: []
+informed: []
+superseded_by: null
+---
 
-> Architecture Decision Record template. Copy this file and rename to `ADR-NNN-title.md`.
+# ADR-000: Short Title of Decision
 
-## Status
-
-[Proposed | Accepted | Deprecated | Superseded by ADR-NNN]
-
-## Date
-
-YYYY-MM-DD
+> Copy this file and rename it to `ADR-NNN-kebab-title.md`.
+> Add an entry to [INDEX.yaml](INDEX.yaml) immediately after saving.
 
 ## Context
 
-<!-- What is the issue that we're seeing that is motivating this decision or change? -->
+<!-- What forces, constraints, or events motivated this decision? -->
 
-[Describe the context and problem statement. What forces are at play? What constraints exist?]
+[Describe the problem or situation that requires a decision.]
 
 ## Decision
 
-<!-- What is the change that we're proposing and/or doing? -->
-
-We will [decision made].
+We will [state the decision in active voice].
 
 ## Consequences
 
 ### Positive
-<!-- What becomes easier? -->
-- [Benefit 1]
-- [Benefit 2]
+- [Benefit]
 
 ### Negative
-<!-- What becomes harder? What are the trade-offs? -->
-- [Drawback 1]
-- [Drawback 2]
+- [Drawback / trade-off]
 
 ### Neutral
-<!-- What doesn't change significantly? -->
-- [Neutral point]
+- [What doesn't change significantly]
 
 ## Alternatives Considered
 
 ### Option 1: [Name]
-- **Pros**: [List pros]
-- **Cons**: [List cons]
-- **Why rejected**: [Reason]
+- **Pros**: [list]
+- **Cons**: [list]
+- **Why rejected**: [reason]
 
 ### Option 2: [Name]
-- **Pros**: [List pros]
-- **Cons**: [List cons]
-- **Why rejected**: [Reason]
+- **Pros**: [list]
+- **Cons**: [list]
+- **Why rejected**: [reason]
 
 ## References
 
-- [Link to relevant documentation]
-- [Link to discussion/RFC]
-- [Related ADRs]
-
----
-
-## Notes
-
-<!-- Optional: Additional context, meeting notes, or implementation details -->
+- [Related ADR, doc, or RFC]

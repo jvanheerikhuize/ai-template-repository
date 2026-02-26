@@ -1,17 +1,16 @@
+---
+version: "1.0.1"
+status: active
+last_updated: "2026-02-26"
+owner: "🚨 INIT REQUIRED"
+description: "Architecture of the AI Template Repository scaffold"
+---
+
 # System Architecture
 
 > **For AI Assistants**: This document defines HOW the system is built. For WHAT it does, see `../specs/SPEC.md`. For WHY decisions were made, see `../decisions/`.
 >
 > **Note**: This file currently describes the **template repository's own architecture**. When you use this template for a real project, replace this content with your project's actual system architecture.
-
-## Document Info
-
-| Field | Value |
-|-------|-------|
-| Version | 1.0.0 |
-| Status | Active |
-| Last Updated | 2026-02-26 |
-| Owner | 🚨 INIT REQUIRED — set when template is used for a real project |
 
 ---
 
@@ -57,7 +56,7 @@ This repository is a **documentation and tooling scaffold** — it has no runtim
 | Automation | GitHub Actions | Platform-native CI, no additional infrastructure |
 | Scripting | Bash + PowerShell | Cross-platform (Unix + Windows) |
 | Spec format | YAML + OpenAPI | Human-readable, widely supported, schema-validatable |
-| AI governance | Flat Markdown files | Universal — readable by any AI tool without special plugins |
+| AI governance | YAML + Markdown files | Machine-parseable by yq/Python + readable by any AI tool |
 
 ---
 
@@ -76,10 +75,10 @@ ai-template-repository/
 │   ├── architecture/       Technical documentation
 │   ├── decisions/          Architecture Decision Records (ADRs)
 │   └── memory/             AI persistent memory
-│       ├── SESSION_LOG.md  Per-session history
-│       ├── LEARNINGS.md    Accumulated knowledge
-│       ├── TRACEABILITY.md Request → code audit trail
-│       └── AUTHORIZATIONS.md Persistent authorization policy
+│       ├── SESSION_LOG.yaml  Per-session history
+│       ├── LEARNINGS.yaml    Accumulated knowledge
+│       ├── TRACEABILITY.yaml Request → code audit trail
+│       └── AUTHORIZATIONS.yaml Persistent authorization policy
 │
 ├── specs/                  Specification Storage
 │   ├── features/           Feature specs (YAML, validated by JSON schema)
@@ -154,10 +153,10 @@ There is no database. The system's "state" is maintained in:
 | Store | Location | Contents |
 |-------|----------|----------|
 | Spec registry | `specs.config.yaml` | Status of all specs |
-| AI session memory | `.ai/memory/SESSION_LOG.md` | History of AI sessions |
-| Accumulated knowledge | `.ai/memory/LEARNINGS.md` | Discovered gotchas and patterns |
-| Audit trail | `.ai/memory/TRACEABILITY.md` | Request → code linkage |
-| Authorization policy | `.ai/memory/AUTHORIZATIONS.md` | Granted/denied AI action permissions |
+| AI session memory | `.ai/memory/SESSION_LOG.yaml` | History of AI sessions |
+| Accumulated knowledge | `.ai/memory/LEARNINGS.yaml` | Discovered gotchas and patterns |
+| Audit trail | `.ai/memory/TRACEABILITY.yaml` | Request → code linkage |
+| Authorization policy | `.ai/memory/AUTHORIZATIONS.yaml` | Granted/denied AI action permissions |
 | Architecture decisions | `.ai/decisions/ADR-NNN-*.md` | Why decisions were made |
 
 ---
@@ -206,7 +205,7 @@ This template has no deployed infrastructure. When a consumer project adds infra
 - `.env*` files are excluded from context loading in `config.yaml`
 
 ### 6.2 Authorization Model
-- AI actions requiring elevated permissions follow the protocol in `.ai/memory/AUTHORIZATIONS.md`
+- AI actions requiring elevated permissions follow the protocol in `.ai/memory/AUTHORIZATIONS.yaml`
 - Three-tier policy: Never Allowed → Always Allowed → Learned Authorizations → Ask
 - Force pushes and direct commits to `main` are permanently forbidden (Base Rules)
 
@@ -218,9 +217,9 @@ This template has no deployed infrastructure. When a consumer project adds infra
 
 This template has no runtime services and therefore no monitoring stack. The "observability" layer is the AI memory system:
 
-- **Session history**: `.ai/memory/SESSION_LOG.md`
-- **Change audit**: `.ai/memory/TRACEABILITY.md`
-- **Knowledge base**: `.ai/memory/LEARNINGS.md`
+- **Session history**: `.ai/memory/SESSION_LOG.yaml`
+- **Change audit**: `.ai/memory/TRACEABILITY.yaml`
+- **Knowledge base**: `.ai/memory/LEARNINGS.yaml`
 
 > **🚨 INIT REQUIRED**: Add monitoring stack, logging standards, and alerting strategy when your project has runtime services.
 
@@ -257,3 +256,4 @@ See `../decisions/` for all ADRs. Next ADR: 001.
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2026-02-26 | Claude Sonnet 4.6 | Initial population from template placeholder |
+| 1.0.1 | 2026-02-26 | Claude Sonnet 4.6 | Added YAML frontmatter; updated memory file references to .yaml |

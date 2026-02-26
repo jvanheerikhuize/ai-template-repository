@@ -21,3 +21,9 @@ MD060: false
 
 # MD013 - line length: not enforced (documentation files use long lines)
 MD013: false
+
+# MD025 - multiple top-level headings: YAML frontmatter triggers false positives
+MD025: false
+
+# MD036 - emphasis as heading: **Pattern: Name** style is established in PATTERNS.md
+MD036: false

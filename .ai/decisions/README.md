@@ -27,10 +27,10 @@ You do **not** need an ADR for:
 ## How to Create an ADR
 
 1. Copy `template.md` and name it `ADR-NNN-short-title.md` (e.g., `ADR-002-use-postgres.md`)
-2. Use the next sequential number from [INDEX.md](INDEX.md)
+2. Use the next sequential number from [INDEX.yaml](INDEX.yaml) (`next_adr_id`)
 3. Fill in all sections — leave none blank
 4. Set status to `Proposed` initially; update to `Accepted` once the decision is confirmed
-5. Add a row to [INDEX.md](INDEX.md)
+5. Add an entry to [INDEX.yaml](INDEX.yaml)
 
 ### Naming Convention
 
@@ -65,6 +65,6 @@ Proposed → Accepted → (Deprecated | Superseded by ADR-NNN)
 | File | Purpose |
 |------|---------|
 | [README.md](README.md) | This guide |
-| [INDEX.md](INDEX.md) | Living index of all ADRs |
+| [INDEX.yaml](INDEX.yaml) | Living index of all ADRs (machine-parseable YAML) |
 | [template.md](template.md) | Blank template to copy |
 | `ADR-NNN-*.md` | Individual decision records |

@@ -1,104 +1,180 @@
+---
+schema_version: "1.0"
+document_type: ai-directives
+status: active
+version: "1.1"
+last_updated: "2026-02-26"
+owner: "🚨 INIT REQUIRED"
+review_frequency: "on every major project change"
+applies_to: all-ai-assistants
+priority: mandatory
+---
+
 # AI Directives
 
-> **MANDATORY**: All AI assistants working in this repository **MUST** read and comply with every directive in this file. These rules override default AI behavior and take effect for every task, regardless of scope.
+These directives are MANDATORY for all AI assistants working in this repository. They override default AI behavior and apply to every task, regardless of scope or size.
 
-<!--
-  AI PROCESSING INSTRUCTIONS:
-  - Load this file on every session before taking any action
-  - These directives are non-negotiable
-  - If a user instruction conflicts with a directive, flag the conflict before proceeding
--->
+IF any user instruction conflicts with a directive, flag the conflict before proceeding.
 
 ---
 
-## 1. Core Directives
+## 0. Session Initialization
 
-1. **Read before acting** — Before making any change, read `.ai/CONTEXT.md`, `.ai/memory/SESSION_LOG.md`, and `.ai/memory/LEARNINGS.md`. Do not skip this even for "small" tasks.
-2. **Spec before code** — Do not implement new features unless the spec status is `approved` in `specs.config.yaml`. If no spec exists, ask the user to create one before proceeding.
-3. **Never expose secrets** — Do not log, print, or include secrets, tokens, or credentials anywhere in generated code or output.
-4. **Update memory** — At the end of every session, append to `SESSION_LOG.md`. During a session, update `TRACEABILITY.md` incrementally. Never skip memory updates.
-5. **Document decisions** — Create an ADR for every architectural, hard-to-reverse, or non-obvious decision. Do not defer this to a later session.
-6. **Minimal changes** — Only change what is required by the current task. Do not refactor, rename, or "improve" surrounding code unless explicitly asked.
-7. **Populate, don't ignore** — When you encounter a file in `.ai/` or `.claude/` with placeholder content (marked with `🚨 INIT REQUIRED`, `[brackets]`, or `YYYY-MM-DD`), treat those as action items. Populate them from available context or ask the user. Never silently leave them unfilled.
+MUST complete before taking any action, even for small tasks:
 
-> **🚨 INIT REQUIRED**: Add any project-specific mandatory directives below when this template is used for a real project.
+1. Read `.ai/CONTEXT.md` — project identity and current state
+2. Read `.ai/memory/SESSION_LOG.yaml` — check the most recent entry (`sessions[-1]`) for open items
+3. Read `.ai/memory/LEARNINGS.yaml` — absorb all active learnings before touching existing code
+4. Read `.ai/memory/TRACEABILITY.yaml` — check for related in-progress work before starting
+5. Read `.ai/decisions/INDEX.yaml` — review past decisions before acting
+
+---
+
+## 1. Core Rules
+
+### 1.1 Read Before Acting
+MUST read `.ai/CONTEXT.md`, `.ai/memory/SESSION_LOG.yaml`, and `.ai/memory/LEARNINGS.yaml` before making any change.
+
+### 1.2 Spec Before Code
+MUST NOT implement new features unless a spec with `status: approved` exists in `specs.config.yaml`.
+IF no approved spec exists: ask the user to create one before proceeding.
+
+### 1.3 No Secrets
+MUST NOT log, print, or include secrets, tokens, or credentials in any generated code, comments, or output.
+
+### 1.4 Memory Maintenance
+MUST append a new entry to `SESSION_LOG.yaml` at the end of every session.
+MUST update `TRACEABILITY.yaml` incrementally during a session — do not batch at the end.
+MUST append to `LEARNINGS.yaml` whenever a non-obvious fact is discovered.
+
+### 1.5 Document Decisions
+MUST create an ADR for every decision that is architectural, hard-to-reverse, non-obvious, cross-cutting, a technology choice, or security-relevant. See §4.
+MUST NOT defer ADR creation to a later session.
+
+### 1.6 Minimal Changes
+MUST NOT refactor, rename, or improve surrounding code unless explicitly asked.
+MUST only change what the current task requires.
+
+### 1.7 Populate Placeholders
+When encountering placeholder content (`🚨 INIT REQUIRED`, `[brackets]`, `YYYY-MM-DD`) in `.ai/` or `.claude/` files:
+- MUST treat it as an action item, not static documentation
+- MUST populate from available context OR ask the user
+- MUST NOT silently leave it unfilled
+
+> **🚨 INIT REQUIRED**: Add any project-specific mandatory directives here.
 
 ---
 
 ## 2. Forbidden Actions
 
-Actions that must **never** be taken, under any circumstances:
+MUST NOT do any of the following under any circumstances:
 
-- Do NOT place implementation code in `scripts/` — that directory contains template repo tooling only (spec ingestion scripts). All AI-generated application code must go in `src/`.
-- Do NOT commit directly to `main` or `master` — all changes must go through a PR.
-- Do NOT remove or bypass tests to make a build pass — fix the underlying issue instead.
-- Do NOT hardcode environment-specific values (URLs, IPs, credentials) in source files.
-- Do NOT treat `.ai/` or `.claude/` files as static documentation — they are live, AI-maintained context files and must be kept current.
-- Do NOT leave placeholder content (`[brackets]`, `YYYY-MM-DD`, `🚨 INIT REQUIRED`) in place after working in a file — either fill it in or ask the user what to put there.
+| ID | Forbidden Action |
+|----|-----------------|
+| F1 | Place implementation code in `scripts/` — that directory is template tooling only |
+| F2 | Commit directly to `main` or `master` — all changes MUST go through a PR |
+| F3 | Delete, skip, or suppress tests to make a build pass |
+| F4 | Hardcode environment-specific values (URLs, IPs, credentials) in source files |
+| F5 | Treat `.ai/` or `.claude/` files as static documentation |
+| F6 | Leave placeholder content in place after working in a file |
+| F7 | Force push to `main` or `master` |
 
 > **🚨 INIT REQUIRED**: Add project-specific forbidden actions here.
 
 ---
 
-## 3. Required Checks Before Acting
+## 3. Pre-Action Checklist
 
-Before making **any** change, verify all of the following:
+Before making any change, verify ALL of the following:
 
-- [ ] Read `.ai/CONTEXT.md` to confirm current project state
-- [ ] Read `.ai/memory/SESSION_LOG.md` — check most recent entry for open items
-- [ ] Read `.ai/memory/LEARNINGS.md` — absorb project knowledge before touching existing code
-- [ ] Check `.ai/decisions/INDEX.md` to understand past decisions before acting
-- [ ] Confirm the relevant spec is `approved` in `specs.config.yaml` (for feature work)
-- [ ] Verify no existing test will break from the proposed change
+- [ ] `.ai/CONTEXT.md` read — project state confirmed
+- [ ] `.ai/memory/SESSION_LOG.yaml` read — most recent entry checked for open items
+- [ ] `.ai/memory/LEARNINGS.yaml` read — project knowledge absorbed
+- [ ] `.ai/decisions/INDEX.yaml` read — past decisions reviewed
+- [ ] Relevant spec has `status: approved` in `specs.config.yaml` (skip for non-feature work)
+- [ ] No existing tests will break from the proposed change
 
 > **🚨 INIT REQUIRED**: Add project-specific pre-action checks here.
 
 ---
 
-## 3a. Decision Documentation (Required)
+## 4. Decision Documentation Protocol
 
-Whenever you make a decision that is **architectural, hard to reverse, non-obvious, cross-cutting, a technology choice, or security-relevant**, you **MUST**:
+### Trigger Conditions
+Create an ADR whenever a decision is:
+- **Architectural** — affects overall structure, patterns, or design
+- **Hard to reverse** — costly or disruptive to undo
+- **Non-obvious** — future contributors would ask "why did we do it this way?"
+- **Cross-cutting** — affects more than one module, layer, or team
+- **Technology choice** — adding or replacing a dependency, tool, or framework
+- **Security-relevant** — auth, secrets, data access, or trust boundaries
 
-1. Create a new ADR file at `.ai/decisions/ADR-NNN-short-title.md` using [template.md](.ai/decisions/template.md) as the base
-2. Use the next sequential number from [INDEX.md](.ai/decisions/INDEX.md)
-3. Set status to `Accepted` (since the decision has already been made)
-4. Add a row to [INDEX.md](.ai/decisions/INDEX.md) immediately
-5. Update "Next ADR number" in INDEX.md
+No ADR needed for: routine bug fixes, style changes, obvious/easily-reversed implementation details.
 
-See [.ai/decisions/README.md](.ai/decisions/README.md) for the full trigger list and naming conventions.
+### Procedure
+1. Copy `.ai/decisions/template.md` → `.ai/decisions/ADR-NNN-kebab-title.md`
+2. Use the next sequential number from `next_adr_id` in `.ai/decisions/INDEX.yaml`
+3. Set `status: accepted` (decision is already made)
+4. Add a new entry to the `decisions` array in `.ai/decisions/INDEX.yaml` immediately
+5. Increment `next_adr_id` in `INDEX.yaml`
 
-**Do not defer this step.** Create the ADR in the same session as the decision.
+MUST NOT defer. Create the ADR in the same session as the decision.
 
----
-
-## 3b. Memory Maintenance (Required)
-
-The `.ai/memory/` directory is your persistent memory. You **MUST** maintain it as follows:
-
-### At the start of every session
-1. Read [SESSION_LOG.yaml](.ai/memory/SESSION_LOG.yaml) — check the most recent entry for open items and recent state
-2. Read [LEARNINGS.yaml](.ai/memory/LEARNINGS.yaml) — absorb accumulated project knowledge before acting
-3. Read [TRACEABILITY.yaml](.ai/memory/TRACEABILITY.yaml) — check if related work exists before starting
-
-### During a session
-- Append to [TRACEABILITY.yaml](.ai/memory/TRACEABILITY.yaml) as each link in the chain is established (do not batch at the end)
-- Append to [LEARNINGS.yaml](.ai/memory/LEARNINGS.yaml) whenever you discover something non-obvious
-
-### At the end of every session
-1. Append a new entry to [SESSION_LOG.yaml](.ai/memory/SESSION_LOG.yaml) following the `entry_schema` at the top of that file
-2. Verify TRACEABILITY.yaml entries are complete for all work done this session
-
-See [.ai/memory/README.md](.ai/memory/README.md) for the full traceability chain and update triggers.
-
-**Do not skip memory updates.** They are the mechanism by which context survives across sessions.
+See [.ai/decisions/README.md](.ai/decisions/README.md) for naming conventions.
 
 ---
 
-## 3c. Authorization Check (Required Before Gated Actions)
+## 5. Memory Maintenance Protocol
 
-Before taking any **Gated Action** (see category list below), you **MUST** consult [AUTHORIZATIONS.yaml](.ai/memory/AUTHORIZATIONS.yaml) and follow its Decision Protocol exactly.
+### Start of Session
+1. Read `SESSION_LOG.yaml` → check `sessions[-1]` for open items and recent state
+2. Read `LEARNINGS.yaml` → absorb all entries where `status: active`
+3. Read `TRACEABILITY.yaml` → check for related in-progress work before starting
 
-### Gated Action Categories (always require a check)
+### During Session
+- Append to `TRACEABILITY.yaml` as each link in the chain is established (do not batch at end)
+- Append to `LEARNINGS.yaml` whenever a non-obvious fact is discovered
+- A partial TRACEABILITY entry is better than no entry
+
+### End of Session
+1. Append a new entry to `SESSION_LOG.yaml` following the `entry_schema` at the top of that file
+2. Verify `TRACEABILITY.yaml` entries are complete for all work done this session
+
+MUST NOT skip memory updates. They are the mechanism by which context survives across sessions.
+
+See [.ai/memory/README.md](.ai/memory/README.md) for the full traceability chain.
+
+---
+
+## 6. Authorization Protocol
+
+Before taking any Gated Action, consult `AUTHORIZATIONS.yaml` and follow this decision tree:
+
+```
+Gated Action Requested
+        │
+        ▼
+[1] Matches base_rules.never_allowed?  → YES → REFUSE. Non-negotiable.
+        │ NO
+        ▼
+[2] Matches base_rules.always_allowed? → YES → PROCEED freely.
+        │ NO
+        ▼
+[3] Matches base_rules.always_ask?     → YES → ASK the user first.
+        │ NO (and no always_ask match)
+        ▼
+[4] Matches learned_authorizations?   → YES → Follow status (granted/denied).
+        │ NO
+        ▼
+[5] No rule found                      → ASK for specific permission.
+        │ (after any grant in steps 3 or 5)
+        ▼
+[6] Ask: "Should I treat this as a general rule, or was this one-time?"
+    Record result as AUTH-NNN in AUTHORIZATIONS.yaml immediately.
+```
+
+### Gated Action Categories
+All of the following always require a check before proceeding:
 - Deleting files or directories
 - Overwriting uncommitted changes
 - Any git operation: commit, push, force, reset, branch deletion
@@ -108,68 +184,45 @@ Before taking any **Gated Action** (see category list below), you **MUST** consu
 - Making external API calls or sending webhooks
 - Skipping, suppressing, or deleting tests
 
-### The Decision Protocol (abbreviated)
-1. **Check Base Rules → Never Allowed** — if matched, refuse. Non-negotiable.
-2. **Check Base Rules → Always Allowed** — if matched, proceed freely.
-3. **Check Learned Authorizations** — if a matching AUTH-NNN exists, follow its status (granted/denied).
-4. **No rule found → Ask** for specific permission.
-5. **After a grant → Ask the generalization follow-up**:
-   > "You've approved [specific action]. Should I treat this as a general rule for [action category], or was this a one-time exception?"
-   Accept: "General rule" | "One-time only" | "Only for [narrower scope]"
-6. **Record the result** as a new AUTH-NNN row in [AUTHORIZATIONS.md](.ai/memory/AUTHORIZATIONS.md) immediately.
-
 ### Key Rules
-- Steps 1 and 2 are absolute — learned authorizations and in-session user requests cannot override them.
-- Step 5 must **always** be asked after a specific grant, even when it feels obvious.
-- If a user says "just do it" without answering step 5, record `scope=session` (expires at end of session, not persisted).
-- Always cite the AUTH-NNN or Base Rule you relied on when taking a gated action.
-
-See [AUTHORIZATIONS.yaml](.ai/memory/AUTHORIZATIONS.yaml) for the full decision tree, category definitions, and the Learned Authorizations table.
+- Steps 1 and 2 are ABSOLUTE — no user request or learned authorization can override them
+- Step 6 MUST always be asked after a specific grant, even when the answer seems obvious
+- IF user says "just do it" without answering step 6 → record `scope: session`
+- MUST cite the AUTH-NNN or Base Rule relied on when taking a gated action
 
 ---
 
-## 4. Priority Hierarchy
+## 7. Priority Hierarchy
 
-When directives, user instructions, or constraints conflict, resolve them in this order:
+When directives, user instructions, or constraints conflict, resolve in this order:
 
-1. **Security** — Never compromise security for any other goal. Secrets, auth, and encryption are non-negotiable.
-2. **Correctness** — Code must be correct before it is clean, fast, or elegant.
-3. **Spec compliance** — Match the approved spec exactly; implement no more and no less.
-4. **Readability** — Prefer clear, self-documenting code as the final tiebreaker.
-
----
-
-## 5. Communication Rules
-
-How the AI must communicate with the team:
-
-- Always cite the file path and line number when referencing specific code (e.g., `src/services/user.service.ts:42`)
-- Flag ambiguities in specs **before** implementing, not after — ask once, clearly, then proceed
-- Summarize every change set at the end of a session in SESSION_LOG.md
-- When declining a request due to a directive, name the directive (e.g., "Directive 2: spec before code") and explain the conflict
-- When a placeholder (`🚨 INIT REQUIRED`) is encountered, call it out explicitly and either fill it from context or ask the user
+| Priority | Rule | Notes |
+|----------|------|-------|
+| 1 — highest | **Security** | Never compromise. Secrets, auth, and encryption are non-negotiable. |
+| 2 | **Correctness** | Code must be correct before it is clean, fast, or elegant. |
+| 3 | **Spec compliance** | Match the approved spec exactly. No more, no less. |
+| 4 — lowest | **Readability** | Prefer clear, self-documenting code as the final tiebreaker. |
 
 ---
 
-## 6. Domain-Specific Rules
+## 8. Communication Rules
 
-Rules that apply specifically to this template repository:
-
-- **Language-agnostic by default** — Do not introduce language-specific tooling, configs, or assumptions (e.g., `package.json`, `requirements.txt`) unless the user has established a specific language for their project
-- **`scripts/` is template tooling only** — `ingest-spec.sh` and `Invoke-SpecIngestion.ps1` are the only files that belong in `scripts/`. Do not add application code there.
-- **`src/` belongs to the consumer** — The `src/` directory does not exist in the template. When a consumer project is set up, all implementation code goes there.
-- **Template fidelity** — The `.ai/`, `specs/`, and `docs/` directory structures are intentional. Do not restructure them without creating an ADR.
-- **Cross-platform awareness** — When writing scripts or commands, provide both Bash (Unix/macOS) and PowerShell (Windows) versions unless the target platform is explicitly known.
-
-> **🚨 INIT REQUIRED**: Replace the domain-specific rules above with rules that apply to your actual project domain, tech stack, and business context when using this template for a real project.
+- MUST cite file path and line number when referencing code: `src/services/user.service.ts:42`
+- MUST flag spec ambiguities BEFORE implementing — ask once, clearly, then proceed
+- MUST name the directive when declining a request: e.g., "Directive 1.2: spec before code"
+- MUST call out `🚨 INIT REQUIRED` placeholders explicitly when encountered
+- SHOULD summarize every change set in `SESSION_LOG.yaml` at the end of a session
 
 ---
 
-## Document Metadata
+## 9. Domain-Specific Rules
 
-| Field | Value |
-|-------|-------|
-| Version | 1.0 |
-| Last Updated | 2026-02-26 |
-| Owner | 🚨 INIT REQUIRED — set when template is used for a real project |
-| Review Frequency | On every major project change |
+Rules specific to this template repository:
+
+- **Language-agnostic by default** — MUST NOT introduce language-specific tooling (e.g., `package.json`, `requirements.txt`) unless the user has established a specific language
+- **`scripts/` is template tooling only** — Only `ingest-spec.sh` and `Invoke-SpecIngestion.ps1` belong in `scripts/`
+- **`src/` belongs to the consumer** — `src/` does not exist in the template; all consumer implementation code goes there
+- **Template fidelity** — MUST NOT restructure `.ai/`, `specs/`, or `docs/` without creating an ADR
+- **Cross-platform** — MUST provide both Bash (Unix/macOS) and PowerShell (Windows) versions when writing scripts, unless the target platform is explicitly known
+
+> **🚨 INIT REQUIRED**: Replace these domain rules with rules for your actual project domain, tech stack, and business context.

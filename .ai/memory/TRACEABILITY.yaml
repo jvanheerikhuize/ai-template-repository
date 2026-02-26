@@ -20,10 +20,10 @@ entry_schema:
   pr_or_commit: string # PR number or commit hash, or null
   status: string       # enum: in-progress | implemented | merged | superseded | abandoned
 
-next_tr_id: 3
+next_tr_id: 4
 
 cross_references:
-  decisions: ".ai/decisions/INDEX.md"
+  decisions: ".ai/decisions/INDEX.yaml"
   session_log: ".ai/memory/SESSION_LOG.yaml"
   learnings: ".ai/memory/LEARNINGS.yaml"
 
@@ -61,5 +61,22 @@ traces:
       - ".ai/DIRECTIVES.md"
       - ".ai/CONTEXT.md"
       - ".ai/config.yaml"
+    pr_or_commit: "3ed8975"
+    status: merged
+
+  - id: "TR-003"
+    date: "2026-02-26"
+    session: 2
+    request: "Apply machine-parseable formatting to architecture, decisions, and specs folders; rewrite DIRECTIVES.md in AI-native structure"
+    spec: null
+    adr: null
+    key_files_changed:
+      - ".ai/decisions/INDEX.yaml"
+      - ".ai/decisions/template.md"
+      - ".ai/decisions/README.md"
+      - ".ai/architecture/ARCHITECTURE.md"
+      - ".ai/architecture/PATTERNS.md"
+      - ".ai/DIRECTIVES.md"
+      - ".markdownlint.yaml"
     pr_or_commit: null
     status: in-progress

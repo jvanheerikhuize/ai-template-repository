@@ -1,0 +1,21 @@
+schema_version: "1.0"
+description: >
+  Living index of all Architecture Decision Records in this project.
+
+ai_instructions: |
+  When you create a new ADR, add an entry here immediately — do not defer.
+  Use the next sequential id from next_adr_id below.
+  Update next_adr_id after adding a new entry.
+
+entry_schema:
+  id: string         # e.g. "ADR-001"
+  title: string      # short descriptive title, matches the ADR filename
+  status: string     # enum: proposed | accepted | deprecated | superseded
+  date: string       # ISO 8601 date the decision was made
+  summary: string    # one-line summary of the decision and its rationale
+  file: string       # relative path, e.g. "ADR-001-short-title.md"
+  superseded_by: string  # e.g. "ADR-005", or null
+
+next_adr_id: 1
+
+decisions: []

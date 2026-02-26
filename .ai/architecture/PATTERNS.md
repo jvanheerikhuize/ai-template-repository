@@ -1,13 +1,14 @@
+---
+version: "1.0.1"
+status: active
+last_updated: "2026-02-26"
+owner: "🚨 INIT REQUIRED"
+description: "Code patterns and conventions for AI-generated code in this project"
+---
+
 # Code Patterns & Conventions
 
 > **For AI Assistants**: Follow these patterns when generating or modifying code. Consistency is critical.
-
-## Document Info
-
-| Field | Value |
-|-------|-------|
-| Version | 1.0.0 |
-| Last Updated | 2026-02-26 |
 
 ---
 
@@ -463,4 +464,5 @@ async createUser(input: CreateUserInput): Promise<User> { ... }
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | YYYY-MM-DD | [Name] | Initial version |
+| 1.0.0 | 2026-02-26 | Claude Sonnet 4.6 | Initial population from template placeholder |
+| 1.0.1 | 2026-02-26 | Claude Sonnet 4.6 | Added YAML frontmatter; removed Document Info table |
