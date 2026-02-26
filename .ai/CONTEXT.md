@@ -1,3 +1,11 @@
+---
+document_type: project-context
+version: "1.0"
+status: active
+last_updated: "2026-02-26"
+owner: "🚨 INIT REQUIRED"
+---
+
 # Project Context
 
 > **For AI Assistants**: This is the master context file. Start here for a complete understanding of the project.
@@ -73,7 +81,7 @@
 > **🚨 INIT REQUIRED**: Replace the recent changes list with your project's actual change history.
 
 ### Known Issues
-- **Template skipping**: AI assistants tend to skip `.ai/` files when placeholder content resembles boilerplate. Root cause documented in [LEARNINGS.md](memory/LEARNINGS.md). Fix: populate files on initialization (which this session does).
+- **Template skipping**: AI assistants tend to skip `.ai/` files when placeholder content resembles boilerplate. Root cause documented in [LEARNINGS.yaml](memory/LEARNINGS.yaml). Fix: populate files on initialization (which this session does).
 - **Initialization gap**: Any fields marked "🚨 INIT REQUIRED" have not yet been filled in for this instance of the template.
 
 ---
@@ -140,13 +148,13 @@ The key conceptual entities are:
 │   ├── ARCHITECTURE.md   # System architecture
 │   └── PATTERNS.md       # Code patterns and conventions
 ├── decisions/
-│   ├── INDEX.md          # ADR index with next ADR number
+│   ├── INDEX.yaml        # ADR index (machine-parseable)
 │   └── ADR-NNN-*.md      # Individual decision records
 └── memory/
-    ├── AUTHORIZATIONS.md # Persistent authorization policy
-    ├── SESSION_LOG.md    # Per-session history
-    ├── LEARNINGS.md      # Accumulated project knowledge
-    └── TRACEABILITY.md   # Request → code audit trail
+    ├── AUTHORIZATIONS.yaml # Persistent authorization policy
+    ├── SESSION_LOG.yaml  # Per-session history
+    ├── LEARNINGS.yaml    # Accumulated project knowledge
+    └── TRACEABILITY.yaml # Request → code audit trail
 
 scripts/
 ├── ingest-spec.sh                # Spec ingestion (Bash/Unix)
@@ -265,7 +273,7 @@ gh (GitHub CLI) >= 2.0
 
 ### When Debugging
 1. **Check known issues** — Review section above first
-2. **Check LEARNINGS.md** — Past gotchas are documented there
+2. **Check LEARNINGS.yaml** — Past gotchas are documented there
 3. **Trace data flow** — Follow the module map
 4. **Verify assumptions** — Read actual implementation before suggesting fixes
 
@@ -284,7 +292,7 @@ gh (GitHub CLI) >= 2.0
 - [specs/](../specs/) — Product specifications
 - [architecture/](architecture/) — Technical architecture
 - [decisions/](decisions/) — Architecture Decision Records
-- [docs/runbooks/](../../docs/runbooks/) — Operational procedures
+- [docs/runbooks/](../docs/runbooks/) — Operational procedures
 
 ### External
 > **🚨 INIT REQUIRED**: Add links to your project's external documentation (design system, API docs, etc.).

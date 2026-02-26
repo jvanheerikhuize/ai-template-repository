@@ -39,7 +39,7 @@ context:
     - ".ai/memory/TRACEABILITY.yaml"   # Read when starting implementation work
     - ".ai/architecture/PATTERNS.md"
     - "specs.config.yaml"
-    - "package.json"  # or equivalent for your language
+    # - "package.json"  # 🚨 INIT REQUIRED: uncomment and update for your project's package manifest
 
   # Files/patterns to exclude from context
   exclude:
@@ -134,7 +134,7 @@ ai_integrations:
   claude:
     enabled: true
     config_path: ".claude/"  # Claude Code looks for CLAUDE.md here
-    model_preference: "claude-sonnet-4-20250514"
+    model_preference: "claude-sonnet-4-6"
     api_key_env: "ANTHROPIC_API_KEY"
 
   # Aider (AI pair programming)
@@ -193,14 +193,17 @@ specs:
 custom_instructions: |
   When working on this codebase:
 
-  1. ALWAYS read .ai/CONTEXT.md first for project overview
-  2. Follow patterns in .ai/architecture/PATTERNS.md
-  3. Check .ai/decisions/ for context on past decisions
-  4. Implement specs exactly as written - no extras
-  5. Write tests for all business logic
+  1. MUST read .ai/DIRECTIVES.md first — non-negotiable rules
+  2. MUST read .ai/CONTEXT.md for project overview
+  3. MUST read .ai/memory/SESSION_LOG.yaml at session start
+  4. MUST read .ai/memory/LEARNINGS.yaml before touching existing code
+  5. Follow patterns in .ai/architecture/PATTERNS.md
+  6. Check .ai/decisions/INDEX.yaml for past architectural decisions
+  7. Implement specs exactly as written — no extras
+  8. Write tests for all business logic
 
-  Priority order when making decisions:
-  1. Security > Correctness > Performance > Readability
+  Priority order when conflicts arise:
+  Security > Correctness > Spec compliance > Readability
 
 # Environments
 environments:

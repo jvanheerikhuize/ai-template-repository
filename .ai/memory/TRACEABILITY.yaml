@@ -20,7 +20,7 @@ entry_schema:
   pr_or_commit: string # PR number or commit hash, or null
   status: string       # enum: in-progress | implemented | merged | superseded | abandoned
 
-next_tr_id: 4
+next_tr_id: 5
 
 cross_references:
   decisions: ".ai/decisions/INDEX.yaml"
@@ -78,5 +78,19 @@ traces:
       - ".ai/architecture/PATTERNS.md"
       - ".ai/DIRECTIVES.md"
       - ".markdownlint.yaml"
+    pr_or_commit: "42ec70b"
+    status: merged
+
+  - id: "TR-004"
+    date: "2026-02-26"
+    session: 2
+    request: "Reevaluate .ai/ folder structure for consistent naming, entry points, and cross-references optimized for LLMs"
+    spec: null
+    adr: null
+    key_files_changed:
+      - ".ai/README.md"
+      - ".ai/CONTEXT.md"
+      - ".ai/config.yaml"
+      - ".ai/memory/TRACEABILITY.yaml"
     pr_or_commit: null
     status: in-progress
