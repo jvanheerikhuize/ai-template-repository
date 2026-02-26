@@ -1,0 +1,112 @@
+schema_version: "1.0"
+description: >
+  Chronological record of every AI session. Each entry captures what was requested,
+  what was done, and what was left open so the next session starts with full context.
+
+ai_instructions: |
+  Start of session: read the most recent entry (highest id) for open items and recent state.
+  End of session: append a new entry — do not edit past entries.
+  Reference the schema below when creating a new entry.
+
+entry_schema:
+  id: integer            # sequential, 1-based
+  date: string           # ISO 8601 date, e.g. "2026-02-26"
+  ai: string             # model name, e.g. "claude-sonnet-4-6"
+  requested_by: string   # enum: human | automation | spec-ingestion
+  summary: string        # 1–2 sentences describing what the session accomplished
+  requests:
+    - string             # what the user asked for (verbatim or paraphrased)
+  changes:
+    - file: string       # repo-relative file path
+      action: string     # enum: created | updated | deleted
+      reason: string     # brief reason for the change
+  decisions:
+    - adr: string        # e.g. "ADR-001", or null if no ADR was created
+      summary: string    # one-line summary, or null
+  traceability:
+    trace_ids:
+      - string           # e.g. "TR-001"
+    specs:
+      - string           # spec file paths referenced, e.g. "specs/features/FEAT-0001.yaml"
+    pr_or_commit: string # PR number or commit hash, or null
+  open_items:
+    - string             # items left unfinished or needing follow-up
+
+sessions:
+
+  - id: 1
+    date: "2026-02-26"
+    ai: "claude-sonnet-4-6"
+    requested_by: human
+    summary: >
+      Populated all .ai/ and .claude/ context files from template placeholders to real project
+      content, then converted data-heavy memory files from Markdown to YAML for machine
+      parseability (yq, Python, grep).
+    requests:
+      - >
+        AI assistants were ignoring .ai/ files because placeholder content looked like template
+        boilerplate. User requested: populate all template default files with real context, or
+        ask when ambiguous.
+      - >
+        User requested: reformat memory files to industry-standard, machine-parseable formats
+        (YAML for data-heavy files; parseable by scripts/CLI tools such as yq, Python, grep).
+    changes:
+      - file: ".ai/CONTEXT.md"
+        action: updated
+        reason: "Replaced all [bracket] and YYYY-MM-DD placeholders with real project context; added INIT REQUIRED markers"
+      - file: ".ai/DIRECTIVES.md"
+        action: updated
+        reason: "Filled in Core Directives 1-7, Forbidden Actions, Priority Hierarchy, Communication Rules, Domain-Specific Rules"
+      - file: ".ai/architecture/ARCHITECTURE.md"
+        action: updated
+        reason: "Replaced generic app architecture template with actual template repo architecture and spec lifecycle diagram"
+      - file: ".ai/architecture/PATTERNS.md"
+        action: updated
+        reason: "Corrected Last Updated date"
+      - file: ".ai/memory/SESSION_LOG.yaml"
+        action: created
+        reason: "Converted from SESSION_LOG.md to YAML for machine parseability"
+      - file: ".ai/memory/LEARNINGS.yaml"
+        action: created
+        reason: "Converted from LEARNINGS.md to YAML; added first 8 learning entries"
+      - file: ".ai/memory/TRACEABILITY.yaml"
+        action: created
+        reason: "Converted from TRACEABILITY.md to YAML"
+      - file: ".ai/memory/AUTHORIZATIONS.yaml"
+        action: created
+        reason: "Converted from AUTHORIZATIONS.md to YAML"
+      - file: ".ai/memory/SESSION_LOG.md"
+        action: deleted
+        reason: "Superseded by SESSION_LOG.yaml"
+      - file: ".ai/memory/LEARNINGS.md"
+        action: deleted
+        reason: "Superseded by LEARNINGS.yaml"
+      - file: ".ai/memory/TRACEABILITY.md"
+        action: deleted
+        reason: "Superseded by TRACEABILITY.yaml"
+      - file: ".ai/memory/AUTHORIZATIONS.md"
+        action: deleted
+        reason: "Superseded by AUTHORIZATIONS.yaml"
+      - file: ".ai/memory/README.md"
+        action: updated
+        reason: "Updated file references from .md to .yaml"
+      - file: ".ai/DIRECTIVES.md"
+        action: updated
+        reason: "Updated memory file references from .md to .yaml"
+      - file: ".ai/CONTEXT.md"
+        action: updated
+        reason: "Updated memory file references from .md to .yaml"
+      - file: ".ai/config.yaml"
+        action: updated
+        reason: "Updated include paths from .md to .yaml"
+    decisions: []
+    traceability:
+      trace_ids:
+        - "TR-001"
+        - "TR-002"
+      specs: []
+      pr_or_commit: null
+    open_items:
+      - "Owner/team fields marked INIT REQUIRED in CONTEXT.md, DIRECTIVES.md, ARCHITECTURE.md — fill in when template is used for a real project"
+      - ".github/workflows/ not yet documented in ARCHITECTURE.md — populate when workflows are added"
+      - "PATTERNS.md Revision History still has placeholder YYYY-MM-DD and [Name] — update when a project author is known"

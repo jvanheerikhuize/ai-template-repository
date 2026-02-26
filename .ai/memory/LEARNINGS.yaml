@@ -1,0 +1,180 @@
+schema_version: "1.0"
+description: >
+  Accumulated project knowledge built up across sessions. The AI's long-term memory about
+  this specific codebase — things not obvious from reading files alone.
+
+ai_instructions: |
+  Read this file before touching any existing code.
+  Append a new entry when you discover something non-obvious: a gotcha, an undocumented
+  constraint, a pattern that diverges from what you'd expect, or domain knowledge that
+  took investigation to uncover.
+  Never delete entries — mark outdated ones with status: outdated and set outdated_as_of.
+
+categories:
+  - gotcha
+  - pattern
+  - domain-knowledge
+  - anti-pattern
+  - integration
+  - security
+
+entry_schema:
+  id: string             # e.g. "L-001"
+  title: string          # short, descriptive title
+  discovered: string     # ISO 8601 date
+  session: integer       # session id from SESSION_LOG.yaml
+  category: string       # one of the categories above
+  status: string         # enum: active | outdated
+  outdated_as_of: string # ISO 8601 date, only set when status is outdated
+  files:
+    - string             # relevant repo-relative file paths
+  description: string    # detailed explanation; specific enough for a future AI with no history
+
+next_learning_id: 9
+
+learnings:
+
+  - id: "L-001"
+    title: "AI assistants skip .ai/ files when content looks like template boilerplate"
+    discovered: "2026-02-26"
+    session: 1
+    category: gotcha
+    status: active
+    outdated_as_of: null
+    files:
+      - ".ai/CONTEXT.md"
+      - ".ai/DIRECTIVES.md"
+      - ".ai/architecture/ARCHITECTURE.md"
+    description: |
+      When .ai/ and .claude/ files contain placeholder content ([bracket] syntax, YYYY-MM-DD,
+      example comments), AI assistants treat the files as static documentation templates rather
+      than live context requiring action. They read the files but do not follow the instructions
+      inside them and do not update memory files at end of sessions.
+
+      Fix applied: populated all placeholder files with real project context. Added INIT REQUIRED
+      markers for fields requiring project-specific input. Added Directive 7 to DIRECTIVES.md:
+      "When you encounter a file in .ai/ or .claude/ with placeholder content, treat those as
+      action items."
+
+      Prevention: after populating this template for a new project, fill in or mark every
+      [bracket] placeholder before the first AI session. An AI that sees specific content engages
+      with it; one that sees boilerplate treats it as reference-only.
+
+  - id: "L-002"
+    title: "scripts/ is off-limits for AI-generated implementation code"
+    discovered: "2026-02-26"
+    session: 1
+    category: gotcha
+    status: active
+    outdated_as_of: null
+    files:
+      - "scripts/ingest-spec.sh"
+      - "scripts/Invoke-SpecIngestion.ps1"
+      - ".ai/architecture/PATTERNS.md"
+    description: |
+      The scripts/ directory contains only template repository tooling (the spec ingestion
+      scripts). It is explicitly NOT a place for AI-generated application code. All
+      implementation code must go in src/. Enforced in DIRECTIVES.md (Forbidden Actions)
+      and PATTERNS.md (Section 3.1).
+
+  - id: "L-003"
+    title: "INIT REQUIRED is the marker for mandatory initialization fields"
+    discovered: "2026-02-26"
+    session: 1
+    category: pattern
+    status: active
+    outdated_as_of: null
+    files:
+      - ".ai/CONTEXT.md"
+      - ".ai/DIRECTIVES.md"
+      - ".ai/architecture/ARCHITECTURE.md"
+    description: |
+      When populating this template for a real project, search all .ai/ files for the string
+      "INIT REQUIRED". Each occurrence is a field that MUST be filled in with project-specific
+      information. These are not optional — leaving them in place means the AI context system
+      is incomplete.
+
+      Common INIT REQUIRED fields: owner/team contacts, project name, tech stack, active work
+      items, environment variables, external documentation links.
+
+  - id: "L-004"
+    title: "Memory files have different mutability rules"
+    discovered: "2026-02-26"
+    session: 1
+    category: pattern
+    status: active
+    outdated_as_of: null
+    files:
+      - ".ai/memory/"
+    description: |
+      SESSION_LOG.yaml and TRACEABILITY.yaml are strictly append-only — never edit past entries.
+      LEARNINGS.yaml entries must not be deleted but can be marked status: outdated with
+      outdated_as_of set. AUTHORIZATIONS.yaml learned_authorizations rows can be superseded by
+      adding a new row with notes referencing the superseded AUTH-NNN id.
+
+  - id: "L-005"
+    title: "This template has no runtime application — src/ is created by consumers"
+    discovered: "2026-02-26"
+    session: 1
+    category: domain-knowledge
+    status: active
+    outdated_as_of: null
+    files:
+      - ".claude/CLAUDE.md"
+      - ".ai/architecture/ARCHITECTURE.md"
+    description: |
+      The template repository itself contains no src/ directory. That directory is created by
+      teams using the template when they build their actual application. The template's value is
+      entirely in the scaffolding: .ai/, specs/, scripts/, .github/. Do not confuse this with a
+      project that has a missing src/ due to a bug.
+
+  - id: "L-006"
+    title: "AI governance memory system only works when actively maintained each session"
+    discovered: "2026-02-26"
+    session: 1
+    category: domain-knowledge
+    status: active
+    outdated_as_of: null
+    files:
+      - ".ai/DIRECTIVES.md"
+      - ".ai/memory/"
+    description: |
+      The .ai/memory/ files are the mechanism by which an AI assistant's accumulated knowledge
+      persists across sessions. When properly maintained, a new session achieves full context
+      in seconds. When not maintained (e.g., because the AI ignored them as template content),
+      context resets to zero every session and the AI makes redundant or contradictory decisions.
+
+  - id: "L-007"
+    title: "Treating .ai/ files as static documentation (anti-pattern)"
+    discovered: "2026-02-26"
+    session: 1
+    category: anti-pattern
+    status: active
+    outdated_as_of: null
+    files: []
+    description: |
+      What happened: AI assistants reading .ai/DIRECTIVES.md and .ai/CONTEXT.md treated
+      placeholder content as "template examples" and did not follow the instructions inside —
+      specifically, did not update SESSION_LOG.yaml, did not create ADRs, did not maintain
+      TRACEABILITY.yaml.
+
+      Why it is wrong: these are live, operational files for the current project. They are not
+      documentation about how to use the template system; they ARE the template system running.
+
+      Correct behaviour: read DIRECTIVES.md at the start of every session. Follow every directive
+      literally. Update memory files before the session ends.
+
+  - id: "L-008"
+    title: "Spec ingestion scripts require the gh CLI to be installed and authenticated"
+    discovered: "2026-02-26"
+    session: 1
+    category: integration
+    status: active
+    outdated_as_of: null
+    files:
+      - "scripts/ingest-spec.sh"
+      - "scripts/Invoke-SpecIngestion.ps1"
+    description: |
+      Both ingestion scripts (ingest-spec.sh and Invoke-SpecIngestion.ps1) depend on the GitHub
+      CLI (gh) being installed and authenticated. If a user reports that ingestion fails, check
+      `gh auth status` first before investigating the scripts themselves.

@@ -1,0 +1,72 @@
+schema_version: "1.0"
+description: >
+  Persistent AI authorization policy for this project. Contains base rules (static, set by the
+  project owner) and learned authorizations (accumulated by the AI from specific approvals
+  or denials during sessions).
+
+ai_instructions: |
+  Read this file before every gated action.
+  Follow the Decision Protocol in DIRECTIVES.md §3c exactly.
+  When you learn a new authorization, append it to learned_authorizations immediately.
+  Base rules are absolute — they cannot be overridden by learned authorizations or user requests.
+
+gated_action_categories:
+  - id: delete-files
+    description: "Remove individual files"
+  - id: delete-directories
+    description: "Remove directories (any depth)"
+  - id: overwrite-uncommitted
+    description: "Overwrite files with uncommitted local changes"
+  - id: git-commit
+    description: "Create any git commit"
+  - id: git-push
+    description: "Push to any remote branch"
+  - id: git-force
+    description: "Force push, reset --hard, rebase with overwrite"
+  - id: git-branch-delete
+    description: "Delete a local or remote branch"
+  - id: dependency-add
+    description: "Add a new package or library dependency"
+  - id: dependency-remove
+    description: "Remove a package or library dependency"
+  - id: config-modify
+    description: "Edit configuration files (CI/CD, env, build)"
+  - id: security-sensitive
+    description: "Touch auth, crypto, secrets handling, or permissions code"
+  - id: external-call
+    description: "Make API calls, send webhooks, post to external services"
+  - id: test-bypass
+    description: "Skip, suppress, or delete tests to make something pass"
+
+base_rules:
+  never_allowed:
+    - category: git-force
+      rule: "Never force push to main or master"
+    - category: test-bypass
+      rule: "Never delete, skip, or suppress tests to make a build pass"
+    - category: security-sensitive
+      rule: "Never commit credentials, tokens, or secrets to any file"
+  always_allowed:
+    - category: delete-files
+      rule: "Delete files inside .ai/memory/ and .ai/decisions/ (AI-maintained files)"
+  always_ask:
+    - category: git-push
+      rule: "Always confirm before pushing to any remote"
+    - category: git-force
+      rule: "Always confirm before any force operation"
+    - category: external-call
+      rule: "Always confirm before contacting external services"
+
+learned_authorization_schema:
+  id: string          # e.g. "AUTH-001"
+  category: string    # one of the gated_action_categories ids
+  scope: string       # enum: general | session | specific | "only for <description>"
+  status: string      # enum: granted | denied
+  date: string        # ISO 8601 date
+  session: integer    # session id from SESSION_LOG.yaml
+  origin: string      # what the user said or did that triggered this authorization
+  notes: string       # e.g. "supersedes AUTH-NNN" or additional context
+
+next_auth_id: 1
+
+learned_authorizations: []

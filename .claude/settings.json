@@ -44,5 +44,10 @@
     "README.md",
     "specs.config.yaml",
     "CONTRIBUTING.md"
-  ]
+  ],
+  "permissions": {
+    "allow": [
+      "Bash(git push)"
+    ]
+  }
 }

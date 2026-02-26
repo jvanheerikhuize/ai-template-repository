@@ -11,26 +11,44 @@ This directory is the AI's persistent memory for this project. It serves two pur
 
 ## Files
 
-| File | Purpose | Read | Write |
-|------|---------|------|-------|
-| [AUTHORIZATIONS.md](AUTHORIZATIONS.md) | Base rules + learned action permissions | Before every gated action | When a new authorization is learned |
-| [SESSION_LOG.md](SESSION_LOG.md) | Chronological log of every AI session | Start of session | End of session |
-| [LEARNINGS.md](LEARNINGS.md) | Accumulated project knowledge and gotchas | Start of session | When something non-obvious is discovered |
-| [TRACEABILITY.md](TRACEABILITY.md) | Matrix linking requests → specs → ADRs → code → PRs | When implementing | When any link in the chain is established |
+| File | Format | Purpose | Read | Write |
+|------|--------|---------|------|-------|
+| [AUTHORIZATIONS.yaml](AUTHORIZATIONS.yaml) | YAML | Base rules + learned action permissions | Before every gated action | When a new authorization is learned |
+| [SESSION_LOG.yaml](SESSION_LOG.yaml) | YAML | Chronological log of every AI session | Start of session | End of session |
+| [LEARNINGS.yaml](LEARNINGS.yaml) | YAML | Accumulated project knowledge and gotchas | Start of session | When something non-obvious is discovered |
+| [TRACEABILITY.yaml](TRACEABILITY.yaml) | YAML | Matrix linking requests → specs → ADRs → code → PRs | When implementing | When any link in the chain is established |
+
+All files use YAML 1.2 and are parseable by `yq`, Python `yaml`, and `grep`.
+
+### Parsing Examples
+
+```bash
+# Get the most recent session summary
+yq '.sessions[-1].summary' .ai/memory/SESSION_LOG.yaml
+
+# List all active learnings
+yq '.learnings[] | select(.status == "active") | .title' .ai/memory/LEARNINGS.yaml
+
+# Find a trace by id
+yq '.traces[] | select(.id == "TR-001")' .ai/memory/TRACEABILITY.yaml
+
+# Check what is never allowed
+yq '.base_rules.never_allowed[].rule' .ai/memory/AUTHORIZATIONS.yaml
+```
 
 ---
 
 ## When to Update Each File
 
-### SESSION_LOG.md
-- **Read**: At the start of every session to understand what was done previously and any open items left behind
-- **Write**: At the end of every session with a structured summary (see template inside the file)
+### SESSION_LOG.yaml
+- **Read**: At the start of every session to understand what was done previously and any open items
+- **Write**: At the end of every session — append a new entry to the `sessions` array; never edit past entries
 
-### LEARNINGS.md
+### LEARNINGS.yaml
 - **Read**: Before touching any existing code
-- **Write**: When you discover something non-obvious — a gotcha, an undocumented constraint, a pattern that diverges from what you'd expect, or domain knowledge that took investigation to uncover
+- **Write**: When you discover something non-obvious — a gotcha, an undocumented constraint, a pattern that diverges from expected, or domain knowledge that took investigation
 
-### TRACEABILITY.md
+### TRACEABILITY.yaml
 - **Read**: When starting work on a request, to check if related work exists
 - **Write**: When any traceability link is established:
   - A user request is received
@@ -61,7 +79,7 @@ Implementation (files changed)
 PR / Commit
     │
     ▼
-TRACEABILITY.md row (the permanent record)
+TRACEABILITY.yaml entry (the permanent record)
 ```
 
-A row in TRACEABILITY.md is the single source of truth for this chain.
+A row in TRACEABILITY.yaml is the single source of truth for this chain.

@@ -16,10 +16,10 @@
 | Document | Purpose | When to Read |
 |----------|---------|--------------|
 | [DIRECTIVES.md](DIRECTIVES.md) | Mandatory AI rules | **Always — before anything else** |
-| [memory/AUTHORIZATIONS.md](memory/AUTHORIZATIONS.md) | What the AI is/isn't allowed to do | Before any gated action |
-| [memory/SESSION_LOG.md](memory/SESSION_LOG.md) | Session history | Start of every session |
-| [memory/LEARNINGS.md](memory/LEARNINGS.md) | Accumulated project knowledge | Before touching existing code |
-| [memory/TRACEABILITY.md](memory/TRACEABILITY.md) | Request → code audit trail | When implementing or investigating |
+| [memory/AUTHORIZATIONS.yaml](memory/AUTHORIZATIONS.yaml) | What the AI is/isn't allowed to do | Before any gated action |
+| [memory/SESSION_LOG.yaml](memory/SESSION_LOG.yaml) | Session history | Start of every session |
+| [memory/LEARNINGS.yaml](memory/LEARNINGS.yaml) | Accumulated project knowledge | Before touching existing code |
+| [memory/TRACEABILITY.yaml](memory/TRACEABILITY.yaml) | Request → code audit trail | When implementing or investigating |
 | [SPEC.md](specs/SPEC.md) | Product requirements | Understanding WHAT to build |
 | [ARCHITECTURE.md](architecture/ARCHITECTURE.md) | System design | Understanding HOW it's built |
 | [PATTERNS.md](architecture/PATTERNS.md) | Code conventions | Writing or reviewing code |
@@ -118,7 +118,7 @@ The key conceptual entities are:
 | Purpose | Location |
 |---------|----------|
 | AI rules (read first) | `.ai/DIRECTIVES.md` |
-| AI session memory | `.ai/memory/SESSION_LOG.md` |
+| AI session memory | `.ai/memory/SESSION_LOG.yaml` |
 | Spec registry | `specs.config.yaml` |
 | Spec ingestion (Unix) | `scripts/ingest-spec.sh` |
 | Spec ingestion (Windows) | `scripts/Invoke-SpecIngestion.ps1` |

@@ -76,17 +76,17 @@ See [.ai/decisions/README.md](.ai/decisions/README.md) for the full trigger list
 The `.ai/memory/` directory is your persistent memory. You **MUST** maintain it as follows:
 
 ### At the start of every session
-1. Read [SESSION_LOG.md](.ai/memory/SESSION_LOG.md) — check the most recent entry for open items and recent state
-2. Read [LEARNINGS.md](.ai/memory/LEARNINGS.md) — absorb accumulated project knowledge before acting
-3. Read [TRACEABILITY.md](.ai/memory/TRACEABILITY.md) — check if related work exists before starting
+1. Read [SESSION_LOG.yaml](.ai/memory/SESSION_LOG.yaml) — check the most recent entry for open items and recent state
+2. Read [LEARNINGS.yaml](.ai/memory/LEARNINGS.yaml) — absorb accumulated project knowledge before acting
+3. Read [TRACEABILITY.yaml](.ai/memory/TRACEABILITY.yaml) — check if related work exists before starting
 
 ### During a session
-- Append to [TRACEABILITY.md](.ai/memory/TRACEABILITY.md) as each link in the chain is established (do not batch at the end)
-- Append to [LEARNINGS.md](.ai/memory/LEARNINGS.md) whenever you discover something non-obvious
+- Append to [TRACEABILITY.yaml](.ai/memory/TRACEABILITY.yaml) as each link in the chain is established (do not batch at the end)
+- Append to [LEARNINGS.yaml](.ai/memory/LEARNINGS.yaml) whenever you discover something non-obvious
 
 ### At the end of every session
-1. Append a new entry to [SESSION_LOG.md](.ai/memory/SESSION_LOG.md) using the template at the top of that file
-2. Verify TRACEABILITY.md rows are complete for all work done this session
+1. Append a new entry to [SESSION_LOG.yaml](.ai/memory/SESSION_LOG.yaml) following the `entry_schema` at the top of that file
+2. Verify TRACEABILITY.yaml entries are complete for all work done this session
 
 See [.ai/memory/README.md](.ai/memory/README.md) for the full traceability chain and update triggers.
 
@@ -96,7 +96,7 @@ See [.ai/memory/README.md](.ai/memory/README.md) for the full traceability chain
 
 ## 3c. Authorization Check (Required Before Gated Actions)
 
-Before taking any **Gated Action** (see category list below), you **MUST** consult [AUTHORIZATIONS.md](.ai/memory/AUTHORIZATIONS.md) and follow its Decision Protocol exactly.
+Before taking any **Gated Action** (see category list below), you **MUST** consult [AUTHORIZATIONS.yaml](.ai/memory/AUTHORIZATIONS.yaml) and follow its Decision Protocol exactly.
 
 ### Gated Action Categories (always require a check)
 - Deleting files or directories
@@ -124,7 +124,7 @@ Before taking any **Gated Action** (see category list below), you **MUST** consu
 - If a user says "just do it" without answering step 5, record `scope=session` (expires at end of session, not persisted).
 - Always cite the AUTH-NNN or Base Rule you relied on when taking a gated action.
 
-See [AUTHORIZATIONS.md](.ai/memory/AUTHORIZATIONS.md) for the full decision tree, category definitions, and the Learned Authorizations table.
+See [AUTHORIZATIONS.yaml](.ai/memory/AUTHORIZATIONS.yaml) for the full decision tree, category definitions, and the Learned Authorizations table.
 
 ---
 
