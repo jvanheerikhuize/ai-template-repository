@@ -13,17 +13,15 @@
 
 ## 1. Core Directives
 
-<!--
-  Add your mandatory directives here.
-  Format each directive as a numbered rule with a clear, imperative statement.
+1. **Read before acting** — Before making any change, read `.ai/CONTEXT.md`, `.ai/memory/SESSION_LOG.md`, and `.ai/memory/LEARNINGS.md`. Do not skip this even for "small" tasks.
+2. **Spec before code** — Do not implement new features unless the spec status is `approved` in `specs.config.yaml`. If no spec exists, ask the user to create one before proceeding.
+3. **Never expose secrets** — Do not log, print, or include secrets, tokens, or credentials anywhere in generated code or output.
+4. **Update memory** — At the end of every session, append to `SESSION_LOG.md`. During a session, update `TRACEABILITY.md` incrementally. Never skip memory updates.
+5. **Document decisions** — Create an ADR for every architectural, hard-to-reverse, or non-obvious decision. Do not defer this to a later session.
+6. **Minimal changes** — Only change what is required by the current task. Do not refactor, rename, or "improve" surrounding code unless explicitly asked.
+7. **Populate, don't ignore** — When you encounter a file in `.ai/` or `.claude/` with placeholder content (marked with `🚨 INIT REQUIRED`, `[brackets]`, or `YYYY-MM-DD`), treat those as action items. Populate them from available context or ask the user. Never silently leave them unfilled.
 
-  Example:
-  1. **Never expose secrets** - Do not log, print, or include secrets, tokens, or credentials anywhere in generated code or output.
-  2. **Require spec approval** - Do not implement new features unless the spec status is `approved` in specs.config.yaml.
--->
-
-1. <!-- Directive: [Short Title] --> [Full directive text here]
-2. <!-- Directive: [Short Title] --> [Full directive text here]
+> **🚨 INIT REQUIRED**: Add any project-specific mandatory directives below when this template is used for a real project.
 
 ---
 
@@ -31,17 +29,14 @@
 
 Actions that must **never** be taken, under any circumstances:
 
-<!--
-  List actions that are absolutely off-limits.
-
-  Example:
-  - Do NOT commit directly to `main` or `master`
-  - Do NOT remove or bypass tests to make a build pass
-  - Do NOT hardcode environment-specific values (URLs, IPs, credentials)
--->
-
 - Do NOT place implementation code in `scripts/` — that directory contains template repo tooling only (spec ingestion scripts). All AI-generated application code must go in `src/`.
-- [ ] [Forbidden action 2]
+- Do NOT commit directly to `main` or `master` — all changes must go through a PR.
+- Do NOT remove or bypass tests to make a build pass — fix the underlying issue instead.
+- Do NOT hardcode environment-specific values (URLs, IPs, credentials) in source files.
+- Do NOT treat `.ai/` or `.claude/` files as static documentation — they are live, AI-maintained context files and must be kept current.
+- Do NOT leave placeholder content (`[brackets]`, `YYYY-MM-DD`, `🚨 INIT REQUIRED`) in place after working in a file — either fill it in or ask the user what to put there.
+
+> **🚨 INIT REQUIRED**: Add project-specific forbidden actions here.
 
 ---
 
@@ -49,18 +44,14 @@ Actions that must **never** be taken, under any circumstances:
 
 Before making **any** change, verify all of the following:
 
-<!--
-  Checklist the AI must mentally run through before proceeding.
-
-  Example:
-  - [ ] Read .ai/CONTEXT.md to confirm current project state
-  - [ ] Confirm the relevant spec is `approved` in specs.config.yaml
-  - [ ] Verify no existing test will break
--->
-
 - [ ] Read `.ai/CONTEXT.md` to confirm current project state
+- [ ] Read `.ai/memory/SESSION_LOG.md` — check most recent entry for open items
+- [ ] Read `.ai/memory/LEARNINGS.md` — absorb project knowledge before touching existing code
 - [ ] Check `.ai/decisions/INDEX.md` to understand past decisions before acting
-- [ ] [Pre-action check 3]
+- [ ] Confirm the relevant spec is `approved` in `specs.config.yaml` (for feature work)
+- [ ] Verify no existing test will break from the proposed change
+
+> **🚨 INIT REQUIRED**: Add project-specific pre-action checks here.
 
 ---
 
@@ -141,20 +132,10 @@ See [AUTHORIZATIONS.md](.ai/memory/AUTHORIZATIONS.md) for the full decision tree
 
 When directives, user instructions, or constraints conflict, resolve them in this order:
 
-<!--
-  Define what wins when rules collide.
-
-  Example:
-  1. Security — Never compromise security for any other goal
-  2. Correctness — Code must be correct before it is clean
-  3. Spec compliance — Match the spec exactly; no extras
-  4. Performance — Optimize only when measurably necessary
-  5. Readability — Prefer clear code as a tiebreaker
--->
-
-1. [Highest priority]
-2. [Second priority]
-3. [Third priority]
+1. **Security** — Never compromise security for any other goal. Secrets, auth, and encryption are non-negotiable.
+2. **Correctness** — Code must be correct before it is clean, fast, or elegant.
+3. **Spec compliance** — Match the approved spec exactly; implement no more and no less.
+4. **Readability** — Prefer clear, self-documenting code as the final tiebreaker.
 
 ---
 
@@ -162,35 +143,25 @@ When directives, user instructions, or constraints conflict, resolve them in thi
 
 How the AI must communicate with the team:
 
-<!--
-  Define expected communication behaviors.
-
-  Example:
-  - Always cite the file and line number when referencing code
-  - Flag ambiguities in specs before implementing, not after
-  - Summarize every change set at the end of a session
--->
-
-- [Communication rule 1]
-- [Communication rule 2]
+- Always cite the file path and line number when referencing specific code (e.g., `src/services/user.service.ts:42`)
+- Flag ambiguities in specs **before** implementing, not after — ask once, clearly, then proceed
+- Summarize every change set at the end of a session in SESSION_LOG.md
+- When declining a request due to a directive, name the directive (e.g., "Directive 2: spec before code") and explain the conflict
+- When a placeholder (`🚨 INIT REQUIRED`) is encountered, call it out explicitly and either fill it from context or ask the user
 
 ---
 
 ## 6. Domain-Specific Rules
 
-Rules that apply specifically to this project's domain or stack:
+Rules that apply specifically to this template repository:
 
-<!--
-  Add rules unique to your domain, tech stack, or business context.
+- **Language-agnostic by default** — Do not introduce language-specific tooling, configs, or assumptions (e.g., `package.json`, `requirements.txt`) unless the user has established a specific language for their project
+- **`scripts/` is template tooling only** — `ingest-spec.sh` and `Invoke-SpecIngestion.ps1` are the only files that belong in `scripts/`. Do not add application code there.
+- **`src/` belongs to the consumer** — The `src/` directory does not exist in the template. When a consumer project is set up, all implementation code goes there.
+- **Template fidelity** — The `.ai/`, `specs/`, and `docs/` directory structures are intentional. Do not restructure them without creating an ADR.
+- **Cross-platform awareness** — When writing scripts or commands, provide both Bash (Unix/macOS) and PowerShell (Windows) versions unless the target platform is explicitly known.
 
-  Example:
-  - All monetary values must use integer cents, never floats
-  - All timestamps must be stored and transmitted as UTC ISO-8601
-  - PII fields must be marked and never logged
--->
-
-- [Domain rule 1]
-- [Domain rule 2]
+> **🚨 INIT REQUIRED**: Replace the domain-specific rules above with rules that apply to your actual project domain, tech stack, and business context when using this template for a real project.
 
 ---
 
@@ -199,6 +170,6 @@ Rules that apply specifically to this project's domain or stack:
 | Field | Value |
 |-------|-------|
 | Version | 1.0 |
-| Last Updated | YYYY-MM-DD |
-| Owner | [Team/Person] |
+| Last Updated | 2026-02-26 |
+| Owner | 🚨 INIT REQUIRED — set when template is used for a real project |
 | Review Frequency | On every major project change |

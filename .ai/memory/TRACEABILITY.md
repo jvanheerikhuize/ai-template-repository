@@ -22,10 +22,11 @@ Use the next sequential TR-NNN ID. Fill in what you know; leave unknowns as `—
 
 | ID | Request | Spec | ADR | Key Files Changed | PR / Commit | Status |
 |----|---------|------|-----|-------------------|-------------|--------|
+| TR-001 | Populate all `.ai/` and `.claude/` template placeholder files with real project context | — | — | `.ai/CONTEXT.md`, `.ai/DIRECTIVES.md`, `.ai/architecture/ARCHITECTURE.md`, `.ai/memory/SESSION_LOG.md`, `.ai/memory/LEARNINGS.md`, `.ai/memory/TRACEABILITY.md`, `.ai/architecture/PATTERNS.md` | — | Implemented |
 
 ---
 
-**Next TR ID: 001**
+**Next TR ID: 002**
 
 ---
 
