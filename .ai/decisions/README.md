@@ -6,6 +6,21 @@ This directory contains Architecture Decision Records — lightweight documents 
 
 ---
 
+## Format
+
+Each ADR is a single Markdown file with YAML frontmatter. The frontmatter is the machine-readable index; the body is the human-readable record. There is no separate index file — tooling can discover ADRs by globbing `ADR-*.md` and parsing frontmatter.
+
+```text
+ADR-NNN-kebab-case-title.md
+```
+
+Examples:
+
+- `ADR-001-add-ai-directives-system.md`
+- `ADR-002-use-postgres-over-mysql.md`
+
+---
+
 ## When to Create an ADR
 
 Create an ADR for any decision that is:
@@ -18,6 +33,7 @@ Create an ADR for any decision that is:
 - **Security-relevant** — changes to auth, secrets handling, data access, or trust boundaries
 
 You do **not** need an ADR for:
+
 - Routine bug fixes
 - Style or formatting changes
 - Obvious, easily-reversed implementation details
@@ -26,45 +42,41 @@ You do **not** need an ADR for:
 
 ## How to Create an ADR
 
-1. Copy `template.md` and name it `ADR-NNN-short-title.md` (e.g., `ADR-002-use-postgres.md`)
-2. Use the next sequential number from [INDEX.yaml](INDEX.yaml) (`next_adr_id`)
-3. Fill in all sections — leave none blank
-4. Set status to `Proposed` initially; update to `Accepted` once the decision is confirmed
-5. Add an entry to [INDEX.yaml](INDEX.yaml)
-
-### Naming Convention
-
-```
-ADR-NNN-kebab-case-title.md
-
-Examples:
-  ADR-001-add-ai-directives-system.md
-  ADR-002-use-postgres-over-mysql.md
-  ADR-003-deprecate-rest-in-favour-of-graphql.md
-```
+1. Copy `template.md` and name it `ADR-NNN-short-title.md`
+2. Use the next sequential number by checking the highest existing `ADR-NNN-*.md` file
+3. Fill in all frontmatter fields and all body sections — leave none blank
+4. Set `status: proposed` initially; update to `accepted` once the decision is confirmed
 
 ---
 
 ## ADR Lifecycle
 
-```
-Proposed → Accepted → (Deprecated | Superseded by ADR-NNN)
+```text
+proposed → accepted → (deprecated | superseded)
 ```
 
 | Status | Meaning |
 |--------|---------|
-| Proposed | Decision is under consideration |
-| Accepted | Decision has been made and is active |
-| Deprecated | Decision is no longer relevant but kept for history |
-| Superseded | Replaced by a newer ADR (link to it) |
+| `proposed` | Decision is under consideration |
+| `accepted` | Decision has been made and is active |
+| `deprecated` | No longer relevant; kept for history |
+| `superseded` | Replaced by a newer ADR — set `superseded_by` to the new ID |
 
 ---
 
-## Files in This Directory
+## Frontmatter Reference
 
-| File | Purpose |
-|------|---------|
-| [README.md](README.md) | This guide |
-| [INDEX.yaml](INDEX.yaml) | Living index of all ADRs (machine-parseable YAML) |
-| [template.md](template.md) | Blank template to copy |
-| `ADR-NNN-*.md` | Individual decision records |
+Each ADR file begins with a YAML frontmatter block that serves as the machine-readable record:
+
+```yaml
+---
+id: "ADR-001"
+title: "Short Title"
+status: proposed          # proposed | accepted | deprecated | superseded
+date: "YYYY-MM-DD"
+decision_makers: []       # names of humans/AI involved
+superseded_by: null       # e.g. "ADR-005", or null
+---
+```
+
+Tooling integration: parse frontmatter with standard libraries (`js-yaml`, `python-frontmatter`, `yq`) or grep/awk. No secondary index file is required or maintained.
