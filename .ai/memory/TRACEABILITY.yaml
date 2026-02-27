@@ -105,5 +105,5 @@ traces:
       - "scripts/test-template.sh"
       - "scripts/Test-Template.ps1"
       - ".ai/DIRECTIVES.md"
-    pr_or_commit: null
-    status: in-progress
+    pr_or_commit: "a67925e"
+    status: merged
