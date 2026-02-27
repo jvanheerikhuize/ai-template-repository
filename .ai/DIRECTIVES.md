@@ -220,7 +220,7 @@ When directives, user instructions, or constraints conflict, resolve in this ord
 Rules specific to this template repository:
 
 - **Language-agnostic by default** — MUST NOT introduce language-specific tooling (e.g., `package.json`, `requirements.txt`) unless the user has established a specific language
-- **`scripts/` is template tooling only** — Only `ingest-spec.sh` and `Invoke-SpecIngestion.ps1` belong in `scripts/`
+- **`scripts/` is template tooling only** — Only template infrastructure scripts belong in `scripts/`: spec ingestion (`ingest-spec.sh`, `Invoke-SpecIngestion.ps1`) and template validation (`test-template.sh`, `Test-Template.ps1`)
 - **`src/` belongs to the consumer** — `src/` does not exist in the template; all consumer implementation code goes there
 - **Template fidelity** — MUST NOT restructure `.ai/`, `specs/`, or `docs/` without creating an ADR
 - **Cross-platform** — MUST provide both Bash (Unix/macOS) and PowerShell (Windows) versions when writing scripts, unless the target platform is explicitly known
