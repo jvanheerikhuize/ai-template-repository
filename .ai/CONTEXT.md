@@ -2,7 +2,7 @@
 document_type: project-context
 version: "1.0"
 status: active
-last_updated: "2026-02-26"
+last_updated: "2026-02-27"
 owner: "🚨 INIT REQUIRED"
 ---
 
@@ -67,22 +67,23 @@ owner: "🚨 INIT REQUIRED"
 - [x] Template-sync runbook added
 - [x] AI-agnostic and platform-agnostic restructure
 - [x] `.ai/` context files populated from placeholder templates (2026-02-26)
+- [x] All `.ai/` Markdown files converted to YAML frontmatter format (2026-02-26)
+- [x] DIRECTIVES.md rewritten in AI-native structure with RFC 2119 language (2026-02-26)
+- [x] `.ai/` directory unified — consistent naming, entry points, cross-references (2026-02-26)
+- [x] Internal test suite added: `scripts/test-template.sh` + `scripts/Test-Template.ps1` (2026-02-27)
 
 > **🚨 INIT REQUIRED**: Replace the active work list above with your current sprint/iteration tasks.
 
 ### Recent Changes
-- 2026-02-26: Populated `.ai/` context files — replaced template placeholders with real project context (this session)
-- 2025-xx-xx: Added template-sync runbook and linked from README
-- 2025-xx-xx: Removed bootstrapped session data from template distribution
-- 2025-xx-xx: Added AI governance system (directives, memory, authorizations, ADRs)
-- 2025-xx-xx: Made codebase AI-agnostic and platform-agnostic
-- 2025-xx-xx: Added missing runbooks and updated README references
+- 2026-02-27: Added internal test suite (`test-template.sh` + `Test-Template.ps1`) with 8 validation suites; updated DIRECTIVES §9; session documentation cleanup
+- 2026-02-26: Unified `.ai/` directory — YAML frontmatter on all MD files, consistent cross-references, rewrote DIRECTIVES.md in AI-native format (RFC 2119, §0–§9, ASCII auth flowchart)
+- 2026-02-26: Populated `.ai/` context files — replaced template placeholders with real project context; converted memory files to YAML
 
 > **🚨 INIT REQUIRED**: Replace the recent changes list with your project's actual change history.
 
 ### Known Issues
-- **Template skipping**: AI assistants tend to skip `.ai/` files when placeholder content resembles boilerplate. Root cause documented in [LEARNINGS.yaml](memory/LEARNINGS.yaml). Fix: populate files on initialization (which this session does).
-- **Initialization gap**: Any fields marked "🚨 INIT REQUIRED" have not yet been filled in for this instance of the template.
+- **Initialization gap**: Any fields marked "🚨 INIT REQUIRED" have not yet been filled in — owner/team contacts, project-specific domain rules. Fill in when this template is used for a real project.
+- **Template skipping (mitigated)**: AI assistants historically skip `.ai/` files when content looks like boilerplate. Mitigated by populating all files with real content and using YAML frontmatter. See [LEARNINGS.yaml](memory/LEARNINGS.yaml) L-001.
 
 ---
 

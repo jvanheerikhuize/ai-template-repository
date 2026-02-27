@@ -30,7 +30,7 @@ entry_schema:
     - string             # relevant repo-relative file paths
   description: string    # detailed explanation; specific enough for a future AI with no history
 
-next_learning_id: 9
+next_learning_id: 12
 
 learnings:
 
@@ -178,3 +178,75 @@ learnings:
       Both ingestion scripts (ingest-spec.sh and Invoke-SpecIngestion.ps1) depend on the GitHub
       CLI (gh) being installed and authenticated. If a user reports that ingestion fails, check
       `gh auth status` first before investigating the scripts themselves.
+
+  - id: "L-009"
+    title: "YAML frontmatter is the standard for all .ai/ Markdown files"
+    discovered: "2026-02-26"
+    session: 2
+    category: pattern
+    status: active
+    outdated_as_of: null
+    files:
+      - ".ai/DIRECTIVES.md"
+      - ".ai/CONTEXT.md"
+      - ".ai/architecture/ARCHITECTURE.md"
+      - ".ai/architecture/PATTERNS.md"
+      - ".ai/decisions/template.md"
+      - ".ai/README.md"
+    description: |
+      Every Markdown file in .ai/ should begin with a YAML frontmatter block (--- delimited).
+      Required fields: document_type, version, status, last_updated. Optional: owner, description,
+      schema_version, applies_to, priority.
+
+      Rationale: frontmatter is parseable by yq/Python/grep, supports automated validation, and
+      signals to LLMs that the file is structured data — not free-form prose to skim. Files
+      without frontmatter tend to be treated as lower-priority documentation.
+
+      Exception: SESSION_LOG.yaml, LEARNINGS.yaml, TRACEABILITY.yaml, AUTHORIZATIONS.yaml are
+      pure YAML (no Markdown), so frontmatter does not apply.
+
+      markdownlint rule MD025 must be set to false in .markdownlint.yaml to suppress the false
+      positive caused by the --- delimiter being misread as a duplicate h1.
+
+  - id: "L-010"
+    title: "test-template.sh / Test-Template.ps1 validate structural integrity without instantiation"
+    discovered: "2026-02-27"
+    session: 3
+    category: pattern
+    status: active
+    outdated_as_of: null
+    files:
+      - "scripts/test-template.sh"
+      - "scripts/Test-Template.ps1"
+    description: |
+      The template ships with a self-contained test suite (Bash + PowerShell) that validates the
+      repository's own structural integrity. It covers 8 suites: required file existence, YAML
+      syntax, frontmatter presence, cross-reference integrity, schema counter invariants
+      (next_*_id == count + 1), stale .md memory ref detection, ADR file validation, and
+      feature spec validation.
+
+      Run with: ./scripts/test-template.sh (Unix) or pwsh scripts/Test-Template.ps1 (Windows).
+      Exit code 0 = all pass, 1 = any failure.
+
+      YAML parsing: prefers python3 + pyyaml; falls back to yq; skips YAML-dependent suites
+      gracefully if neither is available. If python3 tests fail, install PyYAML: pip install pyyaml.
+
+  - id: "L-011"
+    title: "scripts/ scope: template tooling only — ingestion AND validation scripts"
+    discovered: "2026-02-27"
+    session: 3
+    category: domain-knowledge
+    status: active
+    outdated_as_of: null
+    files:
+      - ".ai/DIRECTIVES.md"
+      - "scripts/"
+    description: |
+      The scripts/ directory is restricted to template infrastructure tooling. As of session 3,
+      the authoritative list of valid scripts/ contents is:
+        - ingest-spec.sh / Invoke-SpecIngestion.ps1  — spec ingestion helpers
+        - test-template.sh / Test-Template.ps1        — template structural validation
+
+      No consumer application code, language-specific scripts, or project-specific tooling
+      belongs in scripts/. That restriction is enforced in DIRECTIVES.md §2 (F1) and §9.
+      All consumer implementation code lives in src/ (created by the consumer, not the template).

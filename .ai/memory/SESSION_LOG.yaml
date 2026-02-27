@@ -110,3 +110,109 @@ sessions:
       - "Owner/team fields marked INIT REQUIRED in CONTEXT.md, DIRECTIVES.md, ARCHITECTURE.md — fill in when template is used for a real project"
       - ".github/workflows/ not yet documented in ARCHITECTURE.md — populate when workflows are added"
       - "PATTERNS.md Revision History still has placeholder YYYY-MM-DD and [Name] — update when a project author is known"
+
+  - id: 2
+    date: "2026-02-26"
+    ai: "claude-sonnet-4-6"
+    requested_by: human
+    summary: >
+      Added YAML frontmatter to all .ai/ architecture and decisions Markdown files, rewrote
+      DIRECTIVES.md in AI-native structure (RFC 2119, ASCII flowchart, numbered sections), then
+      audited and unified the entire .ai/ directory for consistent naming, cross-references,
+      and LLM effectiveness.
+    requests:
+      - >
+        Complete conversion of .ai/decisions/ and .ai/architecture/ files to YAML frontmatter
+        format; rewrite DIRECTIVES.md in AI-native structure (continuation from session 1).
+      - >
+        Reevaluate .ai/ folder structure — create consistent naming, entry points, and
+        cross-references optimized for LLMs in one pass.
+    changes:
+      - file: ".ai/decisions/template.md"
+        action: updated
+        reason: "Converted to MADR format with YAML frontmatter"
+      - file: ".ai/decisions/README.md"
+        action: updated
+        reason: "Updated INDEX.md references to INDEX.yaml"
+      - file: ".ai/decisions/INDEX.md"
+        action: deleted
+        reason: "Superseded by INDEX.yaml"
+      - file: ".ai/architecture/ARCHITECTURE.md"
+        action: updated
+        reason: "Added YAML frontmatter; fixed all stale .md memory file references"
+      - file: ".ai/architecture/PATTERNS.md"
+        action: updated
+        reason: "Added YAML frontmatter; fixed revision history placeholders"
+      - file: ".ai/DIRECTIVES.md"
+        action: updated
+        reason: "Full rewrite: RFC 2119 language, numbered sections §0-§9, ASCII auth flowchart, priority table, forbidden actions table"
+      - file: ".markdownlint.yaml"
+        action: updated
+        reason: "Added MD025:false (YAML frontmatter false positive) and MD036:false (bold-label pattern)"
+      - file: ".ai/README.md"
+        action: updated
+        reason: "Full rewrite as authoritative session-init index with reading-order table and full file map"
+      - file: ".ai/CONTEXT.md"
+        action: updated
+        reason: "Added YAML frontmatter; fixed 6 stale .md memory refs and broken ../../docs/ relative path"
+      - file: ".ai/config.yaml"
+        action: updated
+        reason: "Fixed model ID to claude-sonnet-4-6; commented out package.json; updated custom_instructions to match DIRECTIVES priority order"
+      - file: ".ai/memory/TRACEABILITY.yaml"
+        action: updated
+        reason: "Closed TR-002, added TR-003 and TR-004"
+    decisions: []
+    traceability:
+      trace_ids:
+        - "TR-003"
+        - "TR-004"
+      specs: []
+      pr_or_commit: "fb793bc"
+    open_items:
+      - "SESSION_LOG.yaml session 2 entry not yet written at time of commit — resolved in session 3"
+
+  - id: 3
+    date: "2026-02-27"
+    ai: "claude-sonnet-4-6"
+    requested_by: human
+    summary: >
+      Created a two-platform internal test suite (Bash + PowerShell) for validating template
+      structural integrity without instantiating a consumer project; then cleaned up all session
+      documentation to reflect changes made across sessions 2 and 3.
+    requests:
+      - >
+        Create an internal test suite to validate the template repository without creating a
+        new instance.
+      - >
+        Clean up and reflect all changes in the documentation.
+    changes:
+      - file: "scripts/test-template.sh"
+        action: created
+        reason: "Bash test runner with 8 suites: file existence, YAML syntax, frontmatter, cross-refs, schema counters, stale refs, ADR validation, spec validation"
+      - file: "scripts/Test-Template.ps1"
+        action: created
+        reason: "PowerShell equivalent of test-template.sh for Windows compatibility"
+      - file: ".ai/DIRECTIVES.md"
+        action: updated
+        reason: "§9: clarified scripts/ scope to include test runners (test-template.sh, Test-Template.ps1)"
+      - file: ".ai/memory/TRACEABILITY.yaml"
+        action: updated
+        reason: "Closed TR-004 with fb793bc; added TR-005 (test suite) and closed with a67925e; incremented next_tr_id to 6"
+      - file: ".ai/memory/SESSION_LOG.yaml"
+        action: updated
+        reason: "Added session 2 and session 3 entries (this entry)"
+      - file: ".ai/memory/LEARNINGS.yaml"
+        action: updated
+        reason: "Added L-009 through L-011 for patterns discovered in sessions 2-3"
+      - file: ".ai/CONTEXT.md"
+        action: updated
+        reason: "Updated Current State and Recent Changes to reflect all session 2-3 work"
+    decisions: []
+    traceability:
+      trace_ids:
+        - "TR-005"
+      specs: []
+      pr_or_commit: null
+    open_items:
+      - "Owner/team fields still marked INIT REQUIRED — fill in when template is used for a real project"
+      - "PATTERNS.md Revision History author placeholder — update when a project author is known"
