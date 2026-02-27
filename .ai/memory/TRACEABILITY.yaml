@@ -96,14 +96,17 @@ traces:
     status: merged
 
   - id: "TR-005"
-    date: "2026-02-26"
+    date: "2026-02-27"
     session: 3
-    request: "Create an internal test suite to validate the template repository without creating a new instance"
+    request: "Create an internal test suite to validate the template repository without creating a new instance; clean up and reflect all changes in documentation"
     spec: null
     adr: null
     key_files_changed:
       - "scripts/test-template.sh"
       - "scripts/Test-Template.ps1"
       - ".ai/DIRECTIVES.md"
-    pr_or_commit: "a67925e"
+      - ".ai/memory/SESSION_LOG.yaml"
+      - ".ai/memory/LEARNINGS.yaml"
+      - ".ai/CONTEXT.md"
+    pr_or_commit: "baf2cad"
     status: merged
