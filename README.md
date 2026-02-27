@@ -75,10 +75,10 @@ Add these secrets to your GitHub repository (Settings → Secrets → Actions):
 │   ├── CONTEXT.md                 # Master context (AI starts here)
 │   ├── config.yaml                # AI behavior configuration
 │   ├── memory/                    # AI persistent memory
-│   │   ├── AUTHORIZATIONS.md     # What the AI is/isn't allowed to do
-│   │   ├── SESSION_LOG.md        # Chronological session log
-│   │   ├── LEARNINGS.md          # Accumulated project knowledge
-│   │   └── TRACEABILITY.md       # Request → code audit trail
+│   │   ├── AUTHORIZATIONS.yaml   # What the AI is/isn't allowed to do
+│   │   ├── SESSION_LOG.yaml      # Chronological session log
+│   │   ├── LEARNINGS.yaml        # Accumulated project knowledge
+│   │   └── TRACEABILITY.yaml     # Request → spec → ADR → code → PR audit trail
 │   ├── specs/
 │   │   └── SPEC.md               # Product specification template
 │   ├── architecture/
@@ -86,8 +86,8 @@ Add these secrets to your GitHub repository (Settings → Secrets → Actions):
 │   │   └── PATTERNS.md           # Code patterns & conventions
 │   └── decisions/                 # Architecture Decision Records
 │       ├── README.md              # ADR process guide
-│       ├── INDEX.md               # Living index of all ADRs
-│       ├── template.md            # Blank ADR template
+│       ├── INDEX.yaml             # Machine-parseable index of all ADRs
+│       ├── template.md            # Blank ADR template (MADR format)
 │       └── ADR-NNN-*.md          # Individual decision records
 │
 ├── specs/                          # Implementation Specifications
@@ -102,7 +102,9 @@ Add these secrets to your GitHub repository (Settings → Secrets → Actions):
 │
 ├── scripts/                        # Template repo tooling only — do not add code here
 │   ├── ingest-spec.sh             # Spec ingestion helper (Bash/Unix)
-│   └── Invoke-SpecIngestion.ps1   # Spec ingestion helper (PowerShell)
+│   ├── Invoke-SpecIngestion.ps1   # Spec ingestion helper (PowerShell)
+│   ├── test-template.sh           # Template validation test suite (Bash/Unix)
+│   └── Test-Template.ps1          # Template validation test suite (PowerShell)
 │
 ├── .github/
 │   ├── ISSUE_TEMPLATE/            # Issue templates (6 templates)
@@ -222,6 +224,22 @@ DRY_RUN=true ./scripts/ingest-spec.sh specs/features/FEAT-0001.yaml
 ./scripts/Invoke-SpecIngestion.ps1 -SpecFile specs/features/FEAT-0001.yaml -DryRun
 ```
 
+### Template Validation
+
+Validate the template's own structural integrity (no consumer project required):
+
+```bash
+# Bash/Unix
+./scripts/test-template.sh
+```
+
+```powershell
+# PowerShell (Windows / Cross-Platform)
+pwsh scripts/Test-Template.ps1
+```
+
+Runs 8 test suites: required file existence, YAML syntax, frontmatter presence, cross-reference integrity, schema counter invariants, stale reference detection, ADR validation, and feature spec validation. Exit code 0 = pass, 1 = fail.
+
 ## Environment Variables
 
 | Variable | Required | Description |
@@ -305,22 +323,23 @@ The `.ai/` directory provides structured context for **any** AI coding assistant
 
 ```
 .ai/
-├── DIRECTIVES.md       # Mandatory AI rules (loaded before everything else)
+├── README.md           # Directory index — read this to navigate the system
+├── DIRECTIVES.md       # Mandatory AI rules (RFC 2119, §0–§9) — loaded before everything else
 ├── CONTEXT.md          # Start here — project overview & current state
 ├── config.yaml         # AI behavior preferences & tool settings
-├── memory/             # AI persistent memory
-│   ├── AUTHORIZATIONS.md  # Base rules + learned action permissions
-│   ├── SESSION_LOG.md     # Chronological log of every session
-│   ├── LEARNINGS.md       # Accumulated project knowledge & gotchas
-│   └── TRACEABILITY.md    # Request → spec → ADR → code → PR audit trail
+├── memory/             # AI persistent memory (YAML — machine-parseable)
+│   ├── AUTHORIZATIONS.yaml  # Base rules + learned action permissions
+│   ├── SESSION_LOG.yaml     # Chronological log of every session
+│   ├── LEARNINGS.yaml       # Accumulated project knowledge & gotchas
+│   └── TRACEABILITY.yaml    # Request → spec → ADR → code → PR audit trail
 ├── specs/SPEC.md       # Product specification (WHAT to build)
 ├── architecture/
 │   ├── ARCHITECTURE.md # System design (HOW it's built)
 │   └── PATTERNS.md     # Code conventions (HOW to write code)
 └── decisions/          # Architecture Decision Records (WHY decisions were made)
     ├── README.md       # ADR process guide & trigger conditions
-    ├── INDEX.md        # Living index of all ADRs
-    ├── template.md     # Blank template to copy
+    ├── INDEX.yaml      # Machine-parseable index of all ADRs
+    ├── template.md     # Blank MADR template to copy
     └── ADR-NNN-*.md   # Individual decision records
 ```
 
