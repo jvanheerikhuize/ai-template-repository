@@ -47,7 +47,10 @@
   ],
   "permissions": {
     "allow": [
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(git add .ai/DIRECTIVES.md .ai/architecture/ARCHITECTURE.md .ai/architecture/PATTERNS.md .ai/decisions/INDEX.md .ai/decisions/INDEX.yaml .ai/decisions/README.md .ai/decisions/template.md .ai/memory/TRACEABILITY.yaml .markdownlint.yaml)",
+      "Bash(git commit:*)",
+      "Bash(git add .ai/README.md .ai/CONTEXT.md .ai/config.yaml .ai/memory/TRACEABILITY.yaml)"
     ]
   }
 }

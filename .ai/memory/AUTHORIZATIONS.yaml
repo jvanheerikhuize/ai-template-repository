@@ -46,9 +46,11 @@ base_rules:
       rule: "Never delete, skip, or suppress tests to make a build pass"
     - category: security-sensitive
       rule: "Never commit credentials, tokens, or secrets to any file"
-  always_allowed:
     - category: delete-files
-      rule: "Delete files inside .ai/memory/ and .ai/decisions/ (AI-maintained files)"
+      rule: "Never delete files inside .ai/memory/ and .ai/decisions/ (AI-maintained files)"
+  always_allowed:
+    - category: git-commit
+      rule: "Commmit to any remote"
   always_ask:
     - category: git-push
       rule: "Always confirm before pushing to any remote"
